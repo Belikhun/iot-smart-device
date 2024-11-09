@@ -1,0 +1,11 @@
+{
+    // Loaded Stubs:  Generic_ESP32_module_with_ESP32-1.24.0. 
+    "python.autoComplete.extraPaths": [
+        ".micropy\\Generic_ESP32_module_with_ESP32-micropython-1.24.0",
+        ".micropy\\Generic_ESP32_module_with_ESP32-micropython-1.24.0\\stubs",
+        ".micropy\\smart-device"
+    ],
+    "python.analysis.diagnosticSeverityOverrides": {
+        "reportMissingModuleSource": "none"
+    }
+}

@@ -1,0 +1,14 @@
+{
+    "name": "smart-device",
+    "stubs": {
+        "Generic_ESP32_module_with_ESP32-1.24.0.": "v1.13.4"
+    },
+    "dev-packages": {
+        "micropy-cli": "*"
+    },
+    "packages": {},
+    "config": {
+        "vscode": true,
+        "pylint": true
+    }
+}
