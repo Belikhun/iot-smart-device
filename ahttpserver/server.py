@@ -43,9 +43,7 @@ log = scope("http")
 class HTTPServerError(Exception):
     pass
 
-
 class HTTPServer:
-
     def __init__(self, host="0.0.0.0", port=80, backlog=5, timeout=30):
         self.host = host
         self.port = port
@@ -70,10 +68,8 @@ class HTTPServer:
             request_line = await asyncio.wait_for(reader.readline(), self.timeout)
 
             if request_line in [b"", b"\r\n"]:
-                log("INFO", f"empty request line from {writer.get_extra_info('peername')[0]}")
+                log("INFO", f"Empty request line from {writer.get_extra_info('peername')[0]}")
                 return
-
-            log("INFO", f"request_line {request_line} from {writer.get_extra_info('peername')[0]}")
 
             try:
                 request = HTTPRequest(request_line)
@@ -97,6 +93,8 @@ class HTTPServer:
                     if line.find(b":") != -1:
                         name, value = line.split(b':', 1)
                         request.header[name] = value.strip()
+
+            log("INFO", f"{request.method} {request.path} from {writer.get_extra_info('peername')[0]}")
 
             # search function which is connected to (method, path)
             func = self._routes.get((request.method, request.path))

@@ -14,7 +14,6 @@ reason = {
 }
 
 class HTTPResponse:
-
     def __init__(self, status, mimetype=None, close=True, header=None):
         """ Create a response object
 

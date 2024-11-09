@@ -13,7 +13,7 @@ def start_access_point():
 	log("INFO", f"Starting access point \"{name}\" with no password...")
 
 	ap.config(essid=name, authmode=network.AUTH_OPEN)
-	ap.ifconfig((ip, "255.255.255.0", ip, "8.8.8.8"))
+	ap.ifconfig((ip, "255.255.255.0", ip, ip))
 	ap.active(True)
 
 	log("OKAY", "Access point started")

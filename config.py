@@ -30,7 +30,7 @@ def set_config(key: str, value: str|None):
 def save_config():
 	global CONFIG, CONFIG_UPDATED
 
-	if (CONFIG_UPDATED):
+	if (not CONFIG_UPDATED):
 		log("INFO", "No config were changed, save_config() aborted.")
 		return
 

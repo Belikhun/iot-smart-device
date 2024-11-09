@@ -22,13 +22,10 @@
 # Copyright 2021,2022 (c) Erik de Lange
 # Released under MIT license
 
-
 class InvalidRequest(Exception):
     pass
 
-
 class HTTPRequest:
-
     def __init__(self, request_line) -> None:
         """ Separate an HTTP request line in its elements.
 
@@ -88,7 +85,6 @@ def query(query):
                 pass
 
     return d
-
 
 # if __name__ == "__main__":
 #     request_lines = [b"GET / HTTP/1.1\r\n",

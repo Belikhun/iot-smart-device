@@ -11,6 +11,14 @@ async def index(reader, writer, request):
 	await response.send(writer)
 	await sendfile(writer, "public/index.html")
 
+@server.route("GET", "/generate_204")
+async def android_portal_check(reader, writer, request):
+	response = HTTPResponse(301, "text/html", True, {
+		"Location": "http://device.local/"
+	})
+
+	await response.send(writer)
+
 def start_server():
 	log("INFO", "Starting configuration portal http server...")
 	asyncio.create_task(server.start())
