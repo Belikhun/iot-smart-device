@@ -4,29 +4,37 @@ from logger import scope
 import uasyncio as asyncio
 
 log = scope("wifi")
-station = network.WLAN(network.STA_IF)
-ap = network.WLAN(network.AP_IF)
+WIFI_STA = None
+WIFI_AP = None
 
 def start_access_point():
+	global WIFI_AP
+
 	name = config("apName")
 	ip = config("apIp")
 	log("INFO", f"Starting access point \"{name}\" with no password...")
 
-	ap.config(essid=name, authmode=network.AUTH_OPEN)
-	ap.ifconfig((ip, "255.255.255.0", ip, ip))
-	ap.active(True)
+	if not WIFI_AP:
+		WIFI_AP = network.WLAN(network.AP_IF)
+		WIFI_AP.config(essid=name, authmode=network.AUTH_OPEN)
+		WIFI_AP.ifconfig((ip, "255.255.255.0", ip, ip))
+
+	WIFI_AP.active(True)
 
 	log("OKAY", "Access point started")
-	print_ifconfig(ap.ifconfig())
+	print_ifconfig(WIFI_AP.ifconfig())
 
 def stop_access_point():
 	log("INFO", "Turning off access point...")
-	ap.active(False)
+	WIFI_AP.active(False)
 
 def get_ap_ip():
-	return ap.ifconfig()[0]
+	global WIFI_AP
+	return WIFI_AP.ifconfig()[0]
 
 async def connect_wifi(ssid: str = None, password: str = None):
+	global WIFI_STA
+
 	if (ssid == None):
 		ssid = config("ssid")
 
@@ -34,13 +42,17 @@ async def connect_wifi(ssid: str = None, password: str = None):
 		password = config("password")
 
 	log("INFO", f"Trying to connect to wifi [{ssid}] (password={password})...")
-	station.active(True)
-	station.connect(ssid, password)
+
+	if not WIFI_STA:
+		WIFI_STA = network.WLAN(network.STA_IF)
+		WIFI_STA.active(True)
+	
+	WIFI_STA.connect(ssid, password)
 
 	failed = False
 	tries = 1
 
-	while not station.isconnected():
+	while not WIFI_STA.isconnected():
 		status = get_wifi_status()
 
 		if (status == "WRONG_PASSWORD" or status == "NO_AP_FOUND"):
@@ -65,7 +77,7 @@ async def connect_wifi(ssid: str = None, password: str = None):
 		return False
 	
 	log("OKAY", f"Successfully connected to wifi {ssid}")
-	print_ifconfig(station.ifconfig())
+	print_ifconfig(WIFI_STA.ifconfig())
 
 	set_config("ssid", ssid)
 	set_config("password", password)
@@ -74,26 +86,35 @@ async def connect_wifi(ssid: str = None, password: str = None):
 	return True
 
 def get_wifi_ip():
-	return station.ifconfig()[0]
+	global WIFI_STA
+	return WIFI_STA.ifconfig()[0]
 
 def get_wifi_if() -> network.WLAN:
-	return station
+	global WIFI_STA
+	return WIFI_STA
 
 def scan_wifi():
-	return station.scan()
+	global WIFI_STA
+	return WIFI_STA.scan()
+
+def stop_wifi():
+	global WIFI_STA
+	WIFI_STA.active(False)
+	WIFI_STA = None
 
 def get_wifi_status():
+	global WIFI_STA
 	status = "UNKNOWN"
 
-	if (station.status() == network.STAT_IDLE):
+	if (WIFI_STA.status() == network.STAT_IDLE):
 		status = "IDLE"
-	elif (station.status() == network.STAT_CONNECTING):
+	elif (WIFI_STA.status() == network.STAT_CONNECTING):
 		status = "CONNECTING"
-	elif (station.status() == network.STAT_WRONG_PASSWORD):
+	elif (WIFI_STA.status() == network.STAT_WRONG_PASSWORD):
 		status = "WRONG_PASSWORD"
-	elif (station.status() == network.STAT_GOT_IP):
+	elif (WIFI_STA.status() == network.STAT_GOT_IP):
 		status = "GOT_IP"
-	elif (station.status() == network.STAT_NO_AP_FOUND):
+	elif (WIFI_STA.status() == network.STAT_NO_AP_FOUND):
 		status = "NO_AP_FOUND"
 
 	return status
