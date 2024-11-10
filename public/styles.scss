@@ -37,7 +37,7 @@ body {
 	}
 }
 
-.material-symbols-outlined {
+.material-symbols {
 	font-size: 1.5em;
 	user-select: none;
 }
@@ -67,7 +67,7 @@ body {
 		> .heading {
 			margin: 0 3rem;
 
-			> .material-symbols-outlined {
+			> .material-symbols {
 				font-size: 3rem;
 				color: var(--accent);
 			}

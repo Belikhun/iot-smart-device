@@ -38,27 +38,30 @@ class DNSQuery:
 async def start_dns_server():
 	apIp = get_ap_ip()
 	udps = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-
-	# set non-blocking otherwise execution will stop at 'recvfrom' until a connection is received
-	# and this will prevent the other async threads from running
 	udps.setblocking(False)
-
-	# bind to port 53 on all interfaces
 	udps.bind(("0.0.0.0", 53))
 	log("OKAY", "DNS server started")
 
 	while True:
+		gc.collect()
 		try:
-			gc.collect()
-
+			# Try receiving data without blocking
 			data, addr = udps.recvfrom(4096)
 			log("INFO", "Incoming data...")
 
+			# Process DNS query if data is received
 			DNS = DNSQuery(data)
 			udps.sendto(DNS.response(apIp), addr)
-
 			log("OKAY", "Replying: {:s} -> {:s}".format(DNS.domain, apIp))
-			await asyncio.sleep_ms(100)
+
+		except OSError as excp:
+			if excp.errno == 11:  # EAGAIN, no data available
+				await asyncio.sleep_ms(10)  # Short wait and retry
+			else:
+				log("ERROR", f"Unexpected OSError: {excp}")
+				await asyncio.sleep_ms(1000)
 
 		except Exception as excp:
 			await asyncio.sleep_ms(1000)
+
+		await asyncio.sleep_ms(10)  # Yield to other tasks

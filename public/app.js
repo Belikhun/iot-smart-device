@@ -36,7 +36,10 @@ const app = {
 	/** @type {WifiView} */
 	currentConnected: undefined,
 
-	init() {
+	/** @type {{ [name: string]: Blob }} */
+	icons: {},
+
+	async init() {
 		this.updateAvailableWifi = createButton("", {
 			icon: "refresh",
 			complex: true,
@@ -47,7 +50,7 @@ const app = {
 
 		this.view = makeTree("div", "device-setup-form", {
 			heading: { tag: "div", class: "heading", child: {
-				icon: { tag: "span", class: "material-symbols-outlined", text: "home_iot_device" },
+				icon: { tag: "span", class: "material-symbols", text: "home_iot_device" },
 				// pageTitle: { tag: "h1", text: "Cấu hình thiết bị" }
 			}},
 
@@ -80,15 +83,24 @@ const app = {
 			}}
 		});
 
+		this.view.panel.wifiGroup.content.connectedLabel.style.display = "none";
+		this.view.panel.wifiGroup.content.connected.style.display = "none";
+
 		new Scrollable(this.view.panel.wifiGroup.content.availables, {
 			content: this.view.panel.wifiGroup.content.availables.inner
 		});
 
 		this.loadingOverlay = new LoadingOverlay(this.view.panel);
-		this.loading = true;
 		this.container.appendChild(this.view);
-		this.updateStatus();
+
+		await this.updateStatus();
 		this.scanWifi();
+
+		const appLoading = new LoadingOverlay();
+		appLoading.container = $("#app-loading");
+		appLoading.spinner = $("#app-loading > .spinner");
+		appLoading.isLoading = true;
+		appLoading.loading = false;
 	},
 
 	set loading(loading) {
@@ -109,47 +121,47 @@ const app = {
 	},
 
 	async updateStatus() {
-		this.loading = true;
+		// this.loading = true;
 
 		try {
-			// const response = await myajax({
-			// 	url: "/api/wifi/status",
-			// 	method: "GET"
-			// });
+			const response = await myajax({
+				url: "/api/wifi/status",
+				method: "GET"
+			});
 
-			const response = {
-				"mac": "24:dc:c3:4a:fb:8c",
-				"channel": 10,
-				"ssid": "Oneclass New",
-				"rssi": -54,
-				"txpower": 19.5,
-				"status": "GOT_IP"
-			};
+			if (response.status === "IDLE") {
+				this.view.panel.wifiGroup.content.connectedLabel.style.display = "none";
+				this.view.panel.wifiGroup.content.connected.style.display = "none";
 
-			const view = this.renderWifi(response);
-
-			this.view.panel.wifiGroup.content.connectedLabel.style.display = null;
-			this.view.panel.wifiGroup.content.connected.style.display = null;
-			view.connected = true;
+				if (this.currentConnected)
+					this.currentConnected.connected = false;
+			} else {
+				const view = this.renderWifi(response);
+	
+				this.view.panel.wifiGroup.content.connectedLabel.style.display = null;
+				this.view.panel.wifiGroup.content.connected.style.display = null;
+				view.connected = true;
+			}
 		} catch (e) {
 			this.log("WARN", `app.updateStatus()`, e);
 			this.view.panel.wifiGroup.content.connectedLabel.style.display = "none";
 			this.view.panel.wifiGroup.content.connected.style.display = "none";
+
+			if (this.currentConnected)
+				this.currentConnected.connected = false;
 		}
 
-		this.loading = false;
+		// this.loading = false;
 	},
 
 	async scanWifi() {
 		this.updateAvailableWifi.loading = true;
 
 		try {
-			// const response = await myajax({
-			// 	url: "/api/wifi/scan",
-			// 	method: "GET"
-			// });
-
-			const response = [{"channel": 2, "hidden": false, "ssid": "", "bssid": "e4:c3:2a:c9:18:1a", "rssi": -34, "security": "OPEN"}, {"channel": 2, "hidden": false, "ssid": "", "bssid": "e4:c3:2a:c9:18:ca", "rssi": -47, "security": "WPA2-PSK"}, {"channel": 6, "hidden": false, "ssid": "DIRECT-f6-HP M227f LaserJet", "bssid": "c2:b5:d7:d1:4b:f6", "rssi": -49, "security": "WPA2-PSK"}, {"channel": 5, "hidden": false, "ssid": "OneClass", "bssid": "c4:27:28:11:c6:94", "rssi": -53, "security": "WPA/WPA2-PSK"}, {"channel": 10, "hidden": false, "ssid": "Oneclass New", "bssid": "2c:70:4f:06:29:b0", "rssi": -56, "security": "WPA2-PSK"}, {"channel": 6, "hidden": false, "ssid": "DIRECT-9c-HP M236 LaserJet", "bssid": "ae:50:de:51:54:9c", "rssi": -64, "security": "WPA2-PSK"}, {"channel": 11, "hidden": false, "ssid": "SUNCT", "bssid": "60:22:32:a6:1d:c6", "rssi": -65, "security": "WPA2-PSK"}, {"channel": 7, "hidden": false, "ssid": "Oneclass New 1", "bssid": "2c:70:4f:05:d1:c8", "rssi": -67, "security": "WPA2-PSK"}, {"channel": 9, "hidden": false, "ssid": "The Human", "bssid": "a8:5e:45:89:31:20", "rssi": -68, "security": "WPA2-PSK"}, {"channel": 11, "hidden": false, "ssid": "", "bssid": "66:22:32:a6:1d:c6", "rssi": -68, "security": "WPA2-PSK"}, {"channel": 7, "hidden": false, "ssid": "Thuc Anh", "bssid": "38:d5:7a:3c:49:20", "rssi": -74, "security": "WPA/WPA2-PSK"}, {"channel": 1, "hidden": false, "ssid": "Doha Land", "bssid": "6c:f3:7f:65:f7:00", "rssi": -76, "security": "WPA2-PSK"}, {"channel": 1, "hidden": false, "ssid": "Doha Land", "bssid": "6c:f3:7f:5e:f0:00", "rssi": -78, "security": "WPA2-PSK"}, {"channel": 6, "hidden": false, "ssid": "P407", "bssid": "14:4d:67:32:e7:d4", "rssi": -79, "security": "WPA2-PSK"}, {"channel": 11, "hidden": false, "ssid": "Doha Land 2.4G", "bssid": "6c:f3:7f:60:8e:61", "rssi": -81, "security": "WPA2-PSK"}, {"channel": 11, "hidden": false, "ssid": "The_Human", "bssid": "84:d4:7e:f7:23:20", "rssi": -81, "security": "WPA2-PSK"}, {"channel": 11, "hidden": false, "ssid": "", "bssid": "e2:5d:54:5f:0d:db", "rssi": -84, "security": "WPA/WPA2-PSK"}, {"channel": 6, "hidden": false, "ssid": "Soc Soc_5G_plus", "bssid": "64:09:80:53:b7:9f", "rssi": -87, "security": "WPA/WPA2-PSK"}, {"channel": 11, "hidden": false, "ssid": "Doha Land", "bssid": "6c:f3:7f:61:8a:60", "rssi": -87, "security": "WPA2-PSK"}, {"channel": 1, "hidden": false, "ssid": "0804C", "bssid": "7c:a1:07:bb:3a:00", "rssi": -89, "security": "WPA/WPA2-PSK"}, {"channel": 1, "hidden": false, "ssid": "JapanshopVP", "bssid": "06:81:d4:0c:88:fb", "rssi": -91, "security": "WPA/WPA2-PSK"}, {"channel": 11, "hidden": false, "ssid": "Minh Phong", "bssid": "68:9e:29:98:ac:26", "rssi": -93, "security": "WPA/WPA2-PSK"}, {"channel": 9, "hidden": false, "ssid": "Hien Bi", "bssid": "50:c2:e8:1d:29:e0", "rssi": -94, "security": "WPA/WPA2-PSK"}, {"channel": 11, "hidden": false, "ssid": "C0707", "bssid": "60:59:47:e6:8b:80", "rssi": -94, "security": "WPA/WPA2-PSK"}, {"channel": 11, "hidden": false, "ssid": "A DI DA PHAT", "bssid": "5c:1a:6f:76:91:29", "rssi": -96, "security": "WPA/WPA2-PSK"}];
+			const response = await myajax({
+				url: "/api/wifi/scan",
+				method: "GET"
+			});
 
 			emptyNode(this.view.panel.wifiGroup.content.availables.inner);
 
@@ -167,7 +179,7 @@ const app = {
 	renderWifi(/** @type {WifiInstance} */ wifi) {
 		if (!this.wifiViews[wifi.bssid]) {
 			const view = makeTree("div", "wifi-item", {
-				strengh: { tag: "span", class: "material-symbols-outlined", text: "signal_wifi_4_bar" },
+				strengh: { tag: "span", class: "material-symbols", text: "signal_wifi_4_bar" },
 
 				info: { tag: "span", class: "info", child: {
 					ssid: { tag: "div", class: "ssid", child: {
@@ -179,10 +191,10 @@ const app = {
 				}},
 
 				lock: (wifi.security !== "OPEN")
-					? { tag: "span", class: ["material-symbols-outlined", "lock"], text: "lock" }
+					? { tag: "span", class: ["material-symbols", "lock"], text: "lock" }
 					: null,
 
-				action: { tag: "span", class: ["material-symbols-outlined", "action"], text: "chevron_right" },
+				action: { tag: "span", class: ["material-symbols", "action"], text: "chevron_right" },
 			});
 
 			let isConnected = false;
@@ -295,4 +307,4 @@ const app = {
 	}
 }
 
-initGroup({ app }, "app");
+window.addEventListener("load", () => initGroup({ app }, "app"));

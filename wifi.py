@@ -32,6 +32,19 @@ def get_ap_ip():
 	global WIFI_AP
 	return WIFI_AP.ifconfig()[0]
 
+def start_wifi():
+	global WIFI_STA
+	if not WIFI_STA:
+		log("INFO", f"Starting station wifi...")
+		WIFI_STA = network.WLAN(network.STA_IF)
+		WIFI_STA.active(True)
+
+def stop_wifi():
+	global WIFI_STA
+	log("INFO", f"Stopping station wifi...")
+	WIFI_STA.active(False)
+	WIFI_STA = None
+
 async def connect_wifi(ssid: str = None, password: str = None):
 	global WIFI_STA
 
@@ -42,10 +55,6 @@ async def connect_wifi(ssid: str = None, password: str = None):
 		password = config("password")
 
 	log("INFO", f"Trying to connect to wifi [{ssid}] (password={password})...")
-
-	if not WIFI_STA:
-		WIFI_STA = network.WLAN(network.STA_IF)
-		WIFI_STA.active(True)
 	
 	WIFI_STA.connect(ssid, password)
 
@@ -96,11 +105,6 @@ def get_wifi_if() -> network.WLAN:
 def scan_wifi():
 	global WIFI_STA
 	return WIFI_STA.scan()
-
-def stop_wifi():
-	global WIFI_STA
-	WIFI_STA.active(False)
-	WIFI_STA = None
 
 def get_wifi_status():
 	global WIFI_STA

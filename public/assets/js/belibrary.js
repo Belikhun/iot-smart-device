@@ -2225,6 +2225,7 @@ class LoadingOverlay {
 	/**
 	 * Construct a new loading overlay instance inside specified
 	 * container.
+	 * 
 	 * @param {HTMLElement}	[container] 
 	 */
 	constructor(container, {
@@ -3443,7 +3444,7 @@ function createButton(text, {
 	}
 
 	if (icon)
-		button.innerHTML = `<icon class="material-symbols-outlined ${align}" data-icon="${icon}">${icon}</icon>`;
+		button.innerHTML = `<icon class="material-symbols ${align}" data-icon="${icon}">${icon}</icon>`;
 
 	const textNode = document.createElement("span");
 	textNode.classList.add("text");

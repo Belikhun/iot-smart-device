@@ -12,7 +12,9 @@ MIME_TYPES = {
     ".txt": "text/plain",
     ".pdf": "application/pdf",
     ".zip": "application/zip",
-    ".xml": "application/xml"
+    ".xml": "application/xml",
+    ".ttf": "font/ttf",
+    ".woff2": "font/woff2",
 }
 
 def get_mime_type(filename):
