@@ -14,11 +14,12 @@ async def main():
 		start_server()
 	else:
 		connectSuccess = await connect_wifi()
+		start_server()
 
-		if not connectSuccess:
-			log("WARN", "Wifi connection failed! Falling back to configuration protocol...")
-			start_access_point()
-			start_server()
+		# if not connectSuccess:
+		# 	log("WARN", "Wifi connection failed! Falling back to configuration protocol...")
+		# 	start_access_point()
+		# 	start_server()
 
 # Run the main loop
 try:

@@ -73,6 +73,15 @@ async def connect_wifi(ssid: str = None, password: str = None):
 
 	return True
 
+def get_wifi_ip():
+	return station.ifconfig()[0]
+
+def get_wifi_if() -> network.WLAN:
+	return station
+
+def scan_wifi():
+	return station.scan()
+
 def get_wifi_status():
 	status = "UNKNOWN"
 

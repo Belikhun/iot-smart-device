@@ -1,4 +1,253 @@
+
+html {
+	font-size: 16px;
+}
+
+body {
+	--primary-font: "Lexend";
+	--secondary-font: "Lexend";
+	--heading-font: "Lexend";
+	--button-font: "Lexend";
+
+	--accent: #4051b5;
+	--accent-1: #566dee;
+	--green: #4cae4f;
+	--blue: #2094f3;
+	--teal: #00bdd6;
+	--background: white;
+	--background-1: #f3f3f3;
+	--background-2: #e4e4e4;
+	--border: #d1d1d1;
+	--text-primary: rgb(34, 34, 34);
+	--text-secondary: rgb(88, 88, 88);
+	--text-teritary: rgb(150, 150, 150);
+
+	font-size: 1rem;
+	line-height: 1.4;
+	color: var(--text-primary);
+	background-color: var(--background-1);
+}
+
+.osc-input {
+	--background: var(--background-1);
+	--focus-background: white;
+
+	> label {
+		margin-top: 0.2rem;
+	}
+}
+
+.material-symbols-outlined {
+	font-size: 1.5em;
+	user-select: none;
+}
+
 #app {
-	display: block;
-	color: white;
+	position: absolute;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+
+	top: 0;
+	left: 0;
+	width: 100vw;
+	height: 100dvh;
+	overflow: hidden;
+
+	> .device-setup-form {
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+
+		margin: 0 auto;
+		width: 100%;
+		max-width: 34rem;
+		box-sizing: border-box;
+
+		> .heading {
+			margin: 0 3rem;
+
+			> .material-symbols-outlined {
+				font-size: 3rem;
+				color: var(--accent);
+			}
+			
+			> h1 {
+				margin: 0;
+				font-size: 1.8rem;
+				font-weight: 500;
+			}
+		}
+
+		> .panel {
+			position: relative;
+
+			max-height: calc(100svh - 18rem);
+			padding: 3rem;
+			border-radius: 2rem;
+
+			background-color: var(--background);
+			box-shadow: rgba(192, 192, 192, 0.1) 0 0.5rem 3rem;
+
+			user-select: none;
+			overflow: hidden;
+
+			> .group {
+				> .label {
+					margin-bottom: 1rem;
+
+					> .text {
+						font-size: 1.25rem;
+					}
+				}
+			}
+
+			> .wifi > .content {
+				display: flex;
+				flex-direction: column;
+				gap: 0.5rem;
+
+				> .connected {
+					margin: 0 -1.5rem;
+				}
+
+				> .availables {
+					position: relative;
+					display: block;
+					margin: 0 -1.5rem;
+
+					> .inner {
+						max-height: 18rem;
+					}
+				}
+
+				> .connected {
+					margin-bottom: 1.5rem;
+				}
+
+				> .label {
+					display: flex;
+					flex-direction: row;
+					align-items: center;
+
+					> .display {
+						flex-grow: 1;
+					}
+				}
+
+				.wifi-item {
+					display: flex;
+					flex-direction: row;
+					align-items: center;
+					gap: 1.5rem;
+
+					padding: 1rem 1.5rem;
+					border: 0.2rem solid transparent;
+					border-radius: 2rem;
+
+					transition: border 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+					cursor: pointer;
+
+					> .info {
+						flex-grow: 1;
+
+						> .ssid {
+							display: flex;
+							flex-direction: row;
+							align-items: center;
+							gap: 0.5rem;
+
+							> .badge {
+								flex-shrink: 0;
+
+								padding: 0 0.25rem;
+								border-radius: 0.25rem;
+								border: 0.1rem solid var(--border);
+
+								font-size: 0.7rem;
+								color: var(--text-teritary);
+							}
+						}
+
+						> .metas {
+							margin-top: 0.25rem;
+							font-size: 0.85rem;
+							color: var(--text-secondary);
+						}
+					}
+
+					> .lock {
+						font-size: 1.25rem;
+						color: var(--text-secondary);
+						opacity: 0.5;
+					}
+
+					> .action {
+						padding: 0.35rem 0.3rem 0.35rem 0.4rem;
+						font-size: 1.5rem;
+						color: var(--text-secondary);
+						background-color: color-mix(in srgb, var(--background-1) 50%, transparent);
+						border-radius: 2rem;
+					}
+
+					&:hover {
+						transition: unset;
+						border-color: var(--background-2);
+						background-color: var(--background-1);
+
+						> .action {
+							background-color: var(--background);
+						}
+					}
+
+					&:active {
+						transition: unset;
+						border-color: var(--border);
+						background-color: var(--background-2);
+					}
+
+					&.connected {
+						padding: 1.5rem 1.5rem;
+						background-color: var(--accent);
+						border-color: var(--accent);
+						color: var(--background);
+
+						&:hover {
+							transition: border 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+						}
+
+						&:active {
+							transition: unset;
+							background-color: var(--accent-1);
+							border-color: var(--accent-1);
+						}
+
+						> .info {
+							> .ssid > .badge {
+								color: var(--background);
+							}
+
+							> .metas {
+								color: var(--background-1);
+
+								> dot {
+									background-color: var(--background-2);
+								}
+							}
+						}
+
+						> .lock {
+							color: var(--background);
+							opacity: 0.6;
+						}
+
+						> .action {
+							color: var(--background);
+							background-color: color-mix(in srgb, var(--background-1) 25%, transparent);
+						}
+					}
+				}
+			}
+		}
+	}
 }
