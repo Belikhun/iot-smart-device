@@ -33,10 +33,14 @@
 import errno
 
 import uasyncio as asyncio
+import os
 
 from .response import HTTPResponse
 from .url import HTTPRequest, InvalidRequest
+from .sendfile import sendfile
+from .mimes import get_mime_type
 from logger import scope
+from utils import path_exists
 
 log = scope("http")
 
@@ -98,9 +102,18 @@ class HTTPServer:
 
             # search function which is connected to (method, path)
             func = self._routes.get((request.method, request.path))
+
             if func:
                 await func(reader, writer, request)
             else:  # no function found for (method, path) combination
+                path = "public" + request.path
+
+                if (path_exists(path)):
+                    response = HTTPResponse(200, get_mime_type(path), close=True)
+                    await response.send(writer)
+                    await sendfile(writer, path)
+                    return
+
                 response = HTTPResponse(404)
                 await response.send(writer)
 

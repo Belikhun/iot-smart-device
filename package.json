@@ -1,0 +1,10 @@
+{
+  "scripts": {
+    "scss": "sass --style=compressed --verbose public/styles.scss:public/styles.css",
+    "scss:watch": "chokidar \"public/**/*.scss\" -c \"npm run scss\""
+  },
+  "dependencies": {
+    "chokidar-cli": "^3.0.0",
+    "sass": "^1.80.6"
+  }
+}

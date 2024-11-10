@@ -3,13 +3,22 @@ from server import start_server, stop_server
 from dns import start_dns_server
 import uasyncio as asyncio
 from logger import scope
+from config import config
 
 log = scope("main")
-start_access_point()
-start_server()
 
 async def main():
-	await connect_wifi("Oneclass New", "oneclass123")
+	if not config("ssid"):
+		log("INFO", "Device haven't been configured, starting configuration protocol...")
+		start_access_point()
+		start_server()
+	else:
+		connectSuccess = await connect_wifi()
+
+		if not connectSuccess:
+			log("WARN", "Wifi connection failed! Falling back to configuration protocol...")
+			start_access_point()
+			start_server()
 
 # Run the main loop
 try:
