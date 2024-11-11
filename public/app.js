@@ -39,6 +39,8 @@ const app = {
 	/** @type {WifiView} */
 	currentConnected: undefined,
 
+	hwid: null,
+	name: null,
 	isConnecting: false,
 
 	/** @type {{ [name: string]: Blob }} */
@@ -64,7 +66,7 @@ const app = {
 			panel: { tag: "div", class: "panel", child: {
 				wifiGroup: { tag: "div", class: ["group", "wifi"], child: {
 					label: { tag: "div", class: "label", child: {
-						text: { tag: "div", class: "text", text: "Wi-Fi" }
+						text: { tag: "div", class: "text", text: "Kết nối Wi-Fi" }
 					}},
 
 					content: { tag: "div", class: "content", child: {
@@ -82,11 +84,25 @@ const app = {
 							inner: { tag: "div", class: "inner" }
 						}}
 					}}
+				}},
+
+				serverGroup: { tag: "div", class: ["group", "server"], child: {
+					label: { tag: "div", class: "label", child: {
+						text: { tag: "div", class: "text", text: "Máy chủ" }
+					}},
+
+					content: { tag: "div", class: "content", child: {
+						
+					}}
 				}}
 			}},
 
 			footer: { tag: "div", class: "footer", child: {
-
+				devName: { tag: "span", class: "name", text: "Thiết Bị" },
+				dot: { tag: "dot" },
+				hwid: { tag: "span", class: "hwid", text: "HWID" },
+				dot2: { tag: "dot" },
+				author: { tag: "span", class: "author", text: "© Belikhun" },
 			}}
 		});
 
@@ -100,7 +116,11 @@ const app = {
 		this.loadingOverlay = new LoadingOverlay(this.view.panel);
 		this.container.appendChild(this.view);
 
-		await this.updateStatus();
+		await Promise.all([
+			this.updateInfo(),
+			this.updateStatus()
+		]);
+
 		this.scanWifi();
 
 		const appLoading = new LoadingOverlay();
@@ -112,6 +132,23 @@ const app = {
 
 	set loading(loading) {
 		this.loadingOverlay.loading = loading;
+	},
+
+	async updateInfo() {
+		try {
+			const { hwid, name } = await myajax({
+				url: "/api/info",
+				method: "GET"
+			});
+
+			this.hwid = hwid;
+			this.name = name;
+
+			this.view.footer.devName.innerText = this.name;
+			this.view.footer.hwid.innerText = this.hwid;
+		} catch (e) {
+			this.log("WARN", `Fetch device info failed:`, e);
+		}
 	},
 
 	wifiStrengthIcon(rssi) {
@@ -461,6 +498,9 @@ const app = {
 				throw new Error("Kết nối thất bại");
 		} catch (e) {
 			view.connected = false;
+
+			if (!view.wifi.status)
+				view.status = "Lỗi hệ thống";
 		}
 
 		view.view.classList.remove("connecting");

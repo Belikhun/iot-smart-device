@@ -81,6 +81,9 @@ body {
 
 		> .panel {
 			position: relative;
+			display: flex;
+			flex-direction: column;
+			gap: 2rem;
 
 			max-height: calc(100svh - 18rem);
 			padding: 3rem;
@@ -94,10 +97,25 @@ body {
 
 			> .group {
 				> .label {
+					position: relative;
+					margin-top: 1rem;
 					margin-bottom: 1rem;
+
+					&::before {
+						content: "";
+						position: absolute;
+						top: -0.85rem;
+						left: 0;
+						width: 3rem;
+						height: 0.3rem;
+						border-radius: 0.15rem;
+
+						background-color: var(--accent);
+					}
 
 					> .text {
 						font-size: 1.25rem;
+						color: var(--accent);
 					}
 				}
 			}
@@ -280,6 +298,17 @@ body {
 						}
 					}
 				}
+			}
+		}
+
+		> .footer {
+			margin: 0 3rem;
+			text-align: right;
+			font-size: 0.8rem;
+			color: var(--text-teritary);
+
+			> dot {
+				background-color: var(--text-teritary);
 			}
 		}
 	}

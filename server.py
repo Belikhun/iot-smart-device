@@ -6,6 +6,7 @@ import ubinascii
 from config import config
 from utils import send_response_in_chunks
 from wifi import get_wifi_status, get_wifi_if, connect_wifi
+from utils import hw_id
 
 log = scope("http:server")
 server = HTTPServer()
@@ -15,6 +16,22 @@ async def index(reader, writer, request: HTTPRequest):
 	response = HTTPResponse(200, "text/html", close=True)
 	await response.send(writer)
 	await sendfile(writer, "public/index.html")
+
+@server.route("GET", "/api/info")
+async def hw_info(reader, writer, request: HTTPRequest):
+	response_data = {
+		"hwid": hw_id(),
+		"name": config("name")
+	}
+
+	response_body = json.dumps(response_data).encode("utf-8")
+
+	response = HTTPResponse(200, "application/json", close=True, header={
+		"Content-Length": str(len(response_body))
+	})
+
+	await response.send(writer)
+	await send_response_in_chunks(writer, response_body)
 
 @server.route("GET", "/api/wifi/status")
 async def wifi_status(reader, writer, request: HTTPRequest):

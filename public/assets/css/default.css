@@ -543,6 +543,7 @@ dot {
 	height: 0.5em;
 	border-radius: 50%;
 	background-color: rgb(88, 88, 88);
+	transform: translateY(-0.1em);
 	margin: auto 0.5em;
 }
 

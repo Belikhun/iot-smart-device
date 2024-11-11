@@ -2,6 +2,7 @@ import network
 from config import config, set_config, save_config
 from logger import scope
 import uasyncio as asyncio
+from utils import hw_id
 
 log = scope("wifi")
 WIFI_STA = None
@@ -10,7 +11,7 @@ WIFI_AP = None
 def start_access_point():
 	global WIFI_AP
 
-	name = config("apName")
+	name = config("name") + f" - {hw_id()}"
 	ip = config("apIp")
 	log("INFO", f"Starting access point \"{name}\" with no password...")
 

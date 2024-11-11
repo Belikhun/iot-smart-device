@@ -1,4 +1,16 @@
 import os
+import machine
+
+HARDWARE_ID = None
+
+def hw_id():
+	global HARDWARE_ID
+
+	if HARDWARE_ID:
+		return HARDWARE_ID
+
+	HARDWARE_ID = machine.unique_id().hex()
+	return HARDWARE_ID
 
 def path_exists(path):
 	try:

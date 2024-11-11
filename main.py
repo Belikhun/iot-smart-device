@@ -4,12 +4,11 @@ from dns import start_dns_server
 import uasyncio as asyncio
 from logger import scope
 from config import config
-import machine
+from utils import hw_id
 
 log = scope("main")
 
-HARDWARE_ID = machine.unique_id().hex()
-log("INFO", f"Hardware Id: {HARDWARE_ID}")
+log("INFO", f"Hardware Id: {hw_id()}")
 
 start_access_point()
 start_wifi()
