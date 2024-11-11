@@ -36,7 +36,8 @@ async def wifi_status(reader, writer, request: HTTPRequest):
 			"password": config("password"),
 			"rssi": interface.status("rssi"),
 			"channel": interface.config("channel"),
-			"txpower": interface.config("txpower")
+			"txpower": interface.config("txpower"),
+			"address": interface.ifconfig()[0]
 		}
 
 	response_body = json.dumps(response_data).encode("utf-8")
@@ -86,15 +87,26 @@ async def scan_wifi(reader, writer, request: HTTPRequest):
 	await response.send(writer)
 	await send_response_in_chunks(writer, response_body)
 
-@server.route("POST", "/api/wifi/connect")
+@server.route("GET", "/api/wifi/connect")
 async def connect_to_wifi(reader, writer, request: HTTPRequest):
-	ssid = int(request.parameters.get("ssid"))
-	password = int(request.parameters.get("password"))
+	ssid = request.parameters.get("ssid")
+	password = request.parameters.get("password")
 
 	if not ssid:
 		raise ValueError("Missing SSID")
 
-	response_data = { "success": connect_wifi(ssid, password) }
+	success = False
+
+	try:
+		success = await connect_wifi(ssid, password)
+	except Exception:
+		success = False
+
+	response_data = {
+		"success": success,
+		"status": get_wifi_status()
+	}
+
 	response_body = json.dumps(response_data).encode("utf-8")
 
 	response = HTTPResponse(200, "application/json", close=True, header={

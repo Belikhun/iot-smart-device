@@ -45,16 +45,32 @@ def stop_wifi():
 	WIFI_STA.active(False)
 	WIFI_STA = None
 
+async def disconnect_wifi():
+	global WIFI_STA
+
+	if WIFI_STA and WIFI_STA.isconnected():
+		log("INFO", f"Disconnecting current wifi connection...")
+		WIFI_STA.disconnect()
+
+		while WIFI_STA.isconnected():
+			await asyncio.sleep(1)
+
+		stop_wifi()
+		start_wifi()
+		set_config("ssid", None)
+		set_config("password", None)
+
 async def connect_wifi(ssid: str = None, password: str = None):
 	global WIFI_STA
 
-	if (ssid == None):
+	if not ssid:
 		ssid = config("ssid")
-
-	if (password == None):
 		password = config("password")
 
 	log("INFO", f"Trying to connect to wifi [{ssid}] (password={password})...")
+
+	if (WIFI_STA.isconnected()):
+		await disconnect_wifi()
 
 	if password:
 		WIFI_STA.connect(ssid, password)

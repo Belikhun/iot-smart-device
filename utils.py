@@ -9,13 +9,25 @@ def path_exists(path):
 		return False
 
 async def send_response_in_chunks(writer, response_body, chunk_size=512):
-    response_view = memoryview(response_body)
+	response_view = memoryview(response_body)
 
-    # Send data in chunks
-    for i in range(0, len(response_body), chunk_size):
-        chunk = response_view[i:i + chunk_size]
-        writer.write(chunk)
-        await writer.drain()
+	# Send data in chunks
+	for i in range(0, len(response_body), chunk_size):
+		chunk = response_view[i:i + chunk_size]
+		writer.write(chunk)
+		await writer.drain()
 
-    # Close the connection
-    writer.close()
+	# Close the connection
+	writer.close()
+
+def uri_decode(s):
+	decoded = ''
+	i = 0
+	while i < len(s):
+		if s[i] == '%':
+			decoded += chr(int(s[i+1:i+3], 16))
+			i += 3
+		else:
+			decoded += s[i]
+			i += 1
+	return decoded

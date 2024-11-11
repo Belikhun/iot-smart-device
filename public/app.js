@@ -1,3 +1,4 @@
+DEBUG = true;
 
 /**
  * @typedef {{
@@ -7,6 +8,7 @@
  *	bssid: string
  *	mac: string
  *	rssi: number
+ *	address: string
  *	status: "UNKNOWN" | "IDLE" | "CONNECTING" | "WRONG_PASSWORD" | "GOT_IP" | "NO_AP_FOUND"
  *	security: "OPEN" | "WEP" | "WPA-PSK" | "WPA2-PSK" | "WPA/WPA2-PSK"
  * }} WifiInstance
@@ -36,6 +38,8 @@ const app = {
 
 	/** @type {WifiView} */
 	currentConnected: undefined,
+
+	isConnecting: false,
 
 	/** @type {{ [name: string]: Blob }} */
 	icons: {},
@@ -130,7 +134,17 @@ const app = {
 				method: "GET"
 			});
 
+			this.log("DEBG", `Got current connection status: ${response.status}`);
+
 			if (response.status === "IDLE") {
+				// Discard idle status while connecting.
+				if (this.isConnecting) {
+					if (continuous)
+						this.updateStatus(continuous);
+
+					return;
+				}
+
 				this.view.panel.wifiGroup.content.connectedLabel.style.display = "none";
 				this.view.panel.wifiGroup.content.connected.style.display = "none";
 
@@ -140,20 +154,29 @@ const app = {
 				continuous = false;
 			} else if (response.status === "GOT_IP") {
 				const view = this.renderWifi(response);
-	
+
 				this.view.panel.wifiGroup.content.connectedLabel.style.display = null;
 				this.view.panel.wifiGroup.content.connected.style.display = null;
 				view.connected = true;
+				view.status = "Đã kết nối";
+				view.view.classList.remove("connecting");
 				continuous = false;
 			} else if (this.currentConnected) {
-				const view = this.renderWifi(this.currentConnected, false);
+				const view = this.renderWifi(this.currentConnected.wifi, false);
 				view.status = {
 					"CONNECTING": "Đang kết nối...",
 					"WRONG_PASSWORD": "Sai mật khẩu!",
-					"NO_AP_FOUND": "Không tìm thấy điểm truy cập!"
-				};
+					"NO_AP_FOUND": "Không tìm thấy điểm truy cập!",
+					"GOT_IP": "Đã kết nối"
+				}[response.status];
 
-				continuous = (view.status === "CONNECTING");
+				if (response.status !== "CONNECTING" && response.status !== "GOT_IP") {
+					this.log("WARN", `Connection failed. Reason: ${response.status}`);
+					view.view.classList.remove("connecting");
+					continuous = false;
+				}
+			} else {
+				continuous = false;
 			}
 		} catch (e) {
 			this.log("WARN", `app.updateStatus()`, e);
@@ -164,10 +187,8 @@ const app = {
 				this.currentConnected.connected = false;
 		}
 
-		if (continuous) {
-			await delayAsync(500);
+		if (continuous)
 			this.updateStatus(continuous);
-		}
 	},
 
 	async scanWifi() {
@@ -183,7 +204,9 @@ const app = {
 
 			for (const item of response) {
 				const view = this.renderWifi(item);
-				this.view.panel.wifiGroup.content.availables.inner.appendChild(view.view);
+
+				if (!view.connected)
+					this.view.panel.wifiGroup.content.availables.inner.appendChild(view.view);
 			}
 		} catch (e) {
 			this.log("WARN", `app.scanWifi()`, e);
@@ -193,7 +216,7 @@ const app = {
 	},
 
 	renderWifi(/** @type {WifiInstance} */ wifi, update = true) {
-		if (!this.wifiViews[wifi.bssid]) {
+		if (!this.wifiViews[wifi.ssid]) {
 			const view = makeTree("div", "wifi-item", {
 				strengh: { tag: "span", class: "material-symbols", text: "signal_wifi_4_bar" },
 
@@ -224,20 +247,21 @@ const app = {
 				const avail = this.view.panel.wifiGroup.content.availables.inner;
 
 				if (connected) {
-					if (this.currentConnected) {
-						this.currentConnected.view.classList.remove("connected");
-						avail.insertBefore(this.currentConnected.view, avail.firstChild);
-					}
+					if (this.currentConnected && this.currentConnected.wifi.ssid !== wifi.ssid)
+						this.currentConnected.connected = false;
 
 					conn.insertBefore(view, conn.firstChild);
 					this.currentConnected = instance;
-
-					this.view.panel.wifiGroup.content.connectedLabel.style.display = null;
-					conn.style.display = null;
 				} else {
-					this.view.panel.wifiGroup.content.connectedLabel.style.display = "none";
-					conn.style.display = "none";
 					avail.insertBefore(view, avail.firstChild);
+
+					// Clear connected status.
+					if (instance.wifi.address) {
+						instance.status = null;
+						instance.wifi.address = null;
+					}
+
+					this.currentConnected = null;
 				}
 
 				view.classList.toggle("connected", connected);
@@ -274,18 +298,19 @@ const app = {
 			};
 
 			view.addEventListener("click", () => this.connectWifi(instance.wifi));
-			this.wifiViews[wifi.bssid] = instance;
+			this.wifiViews[wifi.ssid] = instance;
 		}
 
 		if (!update)
-			return this.wifiViews[wifi.bssid];
+			return this.wifiViews[wifi.ssid];
 
-		const instance = this.wifiViews[wifi.bssid];
+		const instance = this.wifiViews[wifi.ssid];
 		const { view } = instance;
 
 		for (const [key, value] of Object.entries(wifi))
 			instance.wifi[key] = value;
 
+		wifi = instance.wifi;
 		view.strengh.innerText = this.wifiStrengthIcon(wifi.rssi);
 		view.info.ssid.display.innerText = wifi.ssid;
 
@@ -302,9 +327,7 @@ const app = {
 		emptyNode(view.info.metas);
 
 		if (wifi.status) {
-			const node = document.createElement("span");
-			node.classList.add("meta");
-			node.innerText = {
+			instance.status = {
 				UNKNOWN: "Lỗi không rõ",
 				IDLE: "Chưa kết nối",
 				CONNECTING: "Đang kết nối...",
@@ -312,6 +335,14 @@ const app = {
 				GOT_IP: "Đã kết nối",
 				NO_AP_FOUND: "Không tìm thấy điểm truy cập"
 			}[wifi.status];
+		} else {
+			instance.status = null;
+		}
+
+		if (wifi.address) {
+			const node = document.createElement("span");
+			node.classList.add("meta");
+			node.innerText = wifi.address;
 			view.info.metas.appendChild(node);
 
 			const dot = document.createElement("dot");
@@ -404,25 +435,36 @@ const app = {
 		}
 
 		this.log("INFO", `Attempting to connect to wifi ${instance.ssid} with password ${password}`);
-		const view = this.renderWifi(instance, false);
+
+		instance.address = null;
+		const view = this.renderWifi(instance);
 
 		view.connected = true;
 		view.view.classList.add("connecting");
 		view.status = "Đang kết nối...";
+		this.isConnecting = true;
 
 		try {
-			this.updateStatus(true);
+			setTimeout(() => this.updateStatus(true), 1000);
 
-			await myajax({
+			const { success, status } = await myajax({
 				url: `/api/wifi/connect`,
-				method: "POST",
+				method: "GET",
 				query: { ssid: instance.ssid, password }
 			});
+
+			this.log("INFO", `Connection task completed. Status: ${status}`);
+			view.wifi.status = status;
+			this.renderWifi(view.wifi);
+
+			if (!success)
+				throw new Error("Kết nối thất bại");
 		} catch (e) {
 			view.connected = false;
-			view.view.classList.remove("connecting");
-			view.status = "Kết nối thất bại";
 		}
+
+		view.view.classList.remove("connecting");
+		this.isConnecting = false;
 	}
 }
 

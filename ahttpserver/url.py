@@ -22,6 +22,8 @@
 # Copyright 2021,2022 (c) Erik de Lange
 # Released under MIT license
 
+from utils import uri_decode
+
 class InvalidRequest(Exception):
     pass
 
@@ -80,7 +82,7 @@ def query(query):
             try:
                 key, value = pair.split("=", 1)
                 if key not in d:  # only first occurrence taken into account
-                    d[key] = value
+                    d[key] = uri_decode(value)
             except ValueError:  # skip malformed parameter (like missing '=')
                 pass
 
