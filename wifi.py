@@ -2,7 +2,7 @@ import network
 from config import config, set_config, save_config
 from logger import scope
 import uasyncio as asyncio
-from utils import hw_id
+from utils import hw_id, status_led
 
 log = scope("wifi")
 WIFI_STA = None
@@ -63,12 +63,14 @@ async def disconnect_wifi():
 
 async def connect_wifi(ssid: str = None, password: str = None):
 	global WIFI_STA
+	status = status_led()
 
 	if not ssid:
 		ssid = config("ssid")
 		password = config("password")
 
 	log("INFO", f"Trying to connect to wifi [{ssid}] (password={password})...")
+	status.start_animation("blink", color=(0, 255, 0), duration=0.1)
 
 	if (WIFI_STA.isconnected()):
 		await disconnect_wifi()
@@ -103,9 +105,12 @@ async def connect_wifi(ssid: str = None, password: str = None):
 
 	if (failed):
 		log("ERRR", f"Connection to \"{ssid}\" failed")
+		status.start_animation("blink", color=(255, 0, 0), duration=0.5)
 		return False
 
 	log("OKAY", f"Successfully connected to wifi {ssid}")
+	status.stop_animation()
+	status.set_color((0, 255, 0))
 	print_ifconfig(WIFI_STA.ifconfig())
 
 	set_config("ssid", ssid)

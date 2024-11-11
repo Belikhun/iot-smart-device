@@ -5,6 +5,7 @@ import uasyncio as asyncio
 from logger import scope
 from config import config
 from utils import hw_id
+from utils import status_led
 
 log = scope("main")
 
@@ -17,6 +18,7 @@ start_server()
 async def main():
 	if not config("ssid"):
 		log("INFO", "Device haven't been configured")
+		status_led().start_animation("breathe", color=(0, 0, 255))
 	else:
 		connectSuccess = await connect_wifi()
 
@@ -35,3 +37,5 @@ except KeyboardInterrupt:
 	log("WARN", "Program loop stopped by user. Running clean up...")
 	stop_server()
 	stop_access_point()
+	status_led().stop_animation()
+	status_led().off()

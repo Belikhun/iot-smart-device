@@ -1,7 +1,15 @@
 import os
 import machine
+from components import RGBLed
 
 HARDWARE_ID = None
+
+statled = RGBLed(0, 2, 15)
+statled.start_animation("blink", color=(0, 0, 255))
+
+def status_led():
+	global statled
+	return statled
 
 def hw_id():
 	global HARDWARE_ID
