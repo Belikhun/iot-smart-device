@@ -62,6 +62,6 @@ async def start_dns_server():
 				await asyncio.sleep_ms(1000)
 
 		except Exception as excp:
-			await asyncio.sleep_ms(1000)
+			await asyncio.sleep_ms(3000)
 
 		await asyncio.sleep_ms(10)  # Yield to other tasks

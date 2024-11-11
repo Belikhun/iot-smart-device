@@ -15,6 +15,7 @@
  * 	view: TreeDOM
  * 	wifi: WifiInstance
  * 	connected: boolean
+ * 	status: ?string
  * }} WifiView
  */
 
@@ -40,6 +41,8 @@ const app = {
 	icons: {},
 
 	async init() {
+		popup.init();
+
 		this.updateAvailableWifi = createButton("", {
 			icon: "refresh",
 			complex: true,
@@ -120,9 +123,7 @@ const app = {
 		return "signal_wifi_4_bar";
 	},
 
-	async updateStatus() {
-		// this.loading = true;
-
+	async updateStatus(continuous = false) {
 		try {
 			const response = await myajax({
 				url: "/api/wifi/status",
@@ -135,12 +136,24 @@ const app = {
 
 				if (this.currentConnected)
 					this.currentConnected.connected = false;
-			} else {
+
+				continuous = false;
+			} else if (response.status === "GOT_IP") {
 				const view = this.renderWifi(response);
 	
 				this.view.panel.wifiGroup.content.connectedLabel.style.display = null;
 				this.view.panel.wifiGroup.content.connected.style.display = null;
 				view.connected = true;
+				continuous = false;
+			} else if (this.currentConnected) {
+				const view = this.renderWifi(this.currentConnected, false);
+				view.status = {
+					"CONNECTING": "Đang kết nối...",
+					"WRONG_PASSWORD": "Sai mật khẩu!",
+					"NO_AP_FOUND": "Không tìm thấy điểm truy cập!"
+				};
+
+				continuous = (view.status === "CONNECTING");
 			}
 		} catch (e) {
 			this.log("WARN", `app.updateStatus()`, e);
@@ -151,7 +164,10 @@ const app = {
 				this.currentConnected.connected = false;
 		}
 
-		// this.loading = false;
+		if (continuous) {
+			await delayAsync(500);
+			this.updateStatus(continuous);
+		}
 	},
 
 	async scanWifi() {
@@ -176,7 +192,7 @@ const app = {
 		this.updateAvailableWifi.loading = false;
 	},
 
-	renderWifi(/** @type {WifiInstance} */ wifi) {
+	renderWifi(/** @type {WifiInstance} */ wifi, update = true) {
 		if (!this.wifiViews[wifi.bssid]) {
 			const view = makeTree("div", "wifi-item", {
 				strengh: { tag: "span", class: "material-symbols", text: "signal_wifi_4_bar" },
@@ -187,7 +203,8 @@ const app = {
 						badge: { tag: "span", class: "badge", text: "WPA2" }
 					}},
 	
-					metas: { tag: "div", class: "metas" }
+					metas: { tag: "div", class: "metas" },
+					status: { tag: "div", class: "status" }
 				}},
 
 				lock: (wifi.security !== "OPEN")
@@ -203,20 +220,40 @@ const app = {
 				if (isConnected === connected)
 					return;
 
+				const conn = this.view.panel.wifiGroup.content.connected;
+				const avail = this.view.panel.wifiGroup.content.availables.inner;
+
 				if (connected) {
 					if (this.currentConnected) {
-						this.currentConnected.classList.remove("connected");
-						this.view.panel.wifiGroup.content.availables.inner.appendChild(this.currentConnected.view);
+						this.currentConnected.view.classList.remove("connected");
+						avail.insertBefore(this.currentConnected.view, avail.firstChild);
 					}
 
-					this.view.panel.wifiGroup.content.connected.appendChild(view);
+					conn.insertBefore(view, conn.firstChild);
+					this.currentConnected = instance;
+
+					this.view.panel.wifiGroup.content.connectedLabel.style.display = null;
+					conn.style.display = null;
+				} else {
+					this.view.panel.wifiGroup.content.connectedLabel.style.display = "none";
+					conn.style.display = "none";
+					avail.insertBefore(view, avail.firstChild);
 				}
 
 				view.classList.toggle("connected", connected);
 				isConnected = connected;
+			};
 
-				if (connected)
-					this.currentConnected = instance;
+			const setStatus = (status) => {
+				if (!status) {
+					if (view.info.contains(view.info.status))
+						view.info.removeChild(view.info.status);
+				} else {
+					view.info.status.innerText = status;
+
+					if (!view.info.contains(view.info.status))
+						view.info.appendChild(view.info.status);
+				}
 			};
 
 			const instance = {
@@ -229,15 +266,25 @@ const app = {
 
 				get connected() {
 					return isConnected;
+				},
+
+				set status(status) {
+					setStatus(status);
 				}
 			};
 
+			view.addEventListener("click", () => this.connectWifi(instance.wifi));
 			this.wifiViews[wifi.bssid] = instance;
 		}
 
+		if (!update)
+			return this.wifiViews[wifi.bssid];
+
 		const instance = this.wifiViews[wifi.bssid];
 		const { view } = instance;
-		instance.wifi = Object.assign(instance.wifi, wifi);
+
+		for (const [key, value] of Object.entries(wifi))
+			instance.wifi[key] = value;
 
 		view.strengh.innerText = this.wifiStrengthIcon(wifi.rssi);
 		view.info.ssid.display.innerText = wifi.ssid;
@@ -304,6 +351,78 @@ const app = {
 		view.info.metas.removeChild(view.info.metas.lastChild);
 
 		return instance;
+	},
+
+	async connectWifi(/** @type {WifiInstance} */ instance) {
+		let password = null;
+
+		if (instance.security !== "OPEN") {
+			let input = createInput({
+				type: "text",
+				label: "Mật khẩu",
+				autofill: false,
+				animated: true
+			});
+
+			input.group.style.marginTop = "0.5rem";
+			input.input.addEventListener("input", () => {
+				popup.buttons.confirm.disabled = !input.value;
+			});
+
+			setTimeout(() => {
+				input.group.classList.add("show");
+				popup.buttons.confirm.disabled = true;
+
+				setTimeout(() => {
+					input.input.focus();
+				}, 200);
+			}, 10);
+
+			const action = await popup.show({
+				windowTitle: "Wi-Fi",
+				title: `Kết nối`,
+				message: `Nhập mật khẩu để kết nối vào mạng <strong>${instance.ssid}</strong>`,
+				customNode: input.group,
+				bgColor: "accent",
+				buttons: {
+					cancel: {
+						text: "Hủy",
+						color: "pink"
+					},
+
+					confirm: {
+						text: "Kết Nối",
+						color: "accent"
+					}
+				}
+			});
+
+			if (action !== "confirm")
+				return;
+
+			password = input.value;
+		}
+
+		this.log("INFO", `Attempting to connect to wifi ${instance.ssid} with password ${password}`);
+		const view = this.renderWifi(instance, false);
+
+		view.connected = true;
+		view.view.classList.add("connecting");
+		view.status = "Đang kết nối...";
+
+		try {
+			this.updateStatus(true);
+
+			await myajax({
+				url: `/api/wifi/connect`,
+				method: "POST",
+				query: { ssid: instance.ssid, password }
+			});
+		} catch (e) {
+			view.connected = false;
+			view.view.classList.remove("connecting");
+			view.status = "Kết nối thất bại";
+		}
 	}
 }
 

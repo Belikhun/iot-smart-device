@@ -1,0 +1,314 @@
+[
+	{
+		"channel": 6,
+		"hidden": false,
+		"ssid": "TONGDAI",
+		"bssid": "00:c8:96:8b:bd:19",
+		"rssi": -17,
+		"security": "WPA2-PSK"
+	},
+	{
+		"channel": 6,
+		"hidden": false,
+		"ssid": "Wifi 123",
+		"bssid": "78:a1:06:5f:09:a8",
+		"rssi": -56,
+		"security": "WPA/WPA2-PSK"
+	},
+	{
+		"channel": 11,
+		"hidden": false,
+		"ssid": "TP-LINK_911E",
+		"bssid": "50:bd:5f:73:91:1e",
+		"rssi": -63,
+		"security": "WPA/WPA2-PSK"
+	},
+	{
+		"channel": 6,
+		"hidden": false,
+		"ssid": "Anh huy",
+		"bssid": "ec:26:ca:c8:21:66",
+		"rssi": -64,
+		"security": "WPA/WPA2-PSK"
+	},
+	{
+		"channel": 1,
+		"hidden": false,
+		"ssid": "The Khuong_2.4Ghz",
+		"bssid": "7c:a1:07:16:ab:88",
+		"rssi": -74,
+		"security": "WPA/WPA2-PSK"
+	},
+	{
+		"channel": 9,
+		"hidden": false,
+		"ssid": "TP-Link_0A54",
+		"bssid": "14:eb:b6:35:0a:54",
+		"rssi": -75,
+		"security": "WPA2-PSK"
+	},
+	{
+		"channel": 10,
+		"hidden": false,
+		"ssid": "Tang 3",
+		"bssid": "98:da:c4:64:90:6c",
+		"rssi": -77,
+		"security": "WPA2-PSK"
+	},
+	{
+		"channel": 1,
+		"hidden": false,
+		"ssid": "TP-LINK_ADD4",
+		"bssid": "14:75:90:cd:ad:d4",
+		"rssi": -80,
+		"security": "WPA/WPA2-PSK"
+	},
+	{
+		"channel": 2,
+		"hidden": false,
+		"ssid": "12A Dinh Cong",
+		"bssid": "80:2d:1a:2c:4f:98",
+		"rssi": -80,
+		"security": "WPA/WPA2-PSK"
+	},
+	{
+		"channel": 2,
+		"hidden": false,
+		"ssid": "Khanh Toan",
+		"bssid": "c8:98:28:40:88:5d",
+		"rssi": -80,
+		"security": "WPA/WPA2-PSK"
+	},
+	{
+		"channel": 4,
+		"hidden": false,
+		"ssid": "Minh Duc",
+		"bssid": "e8:43:68:5e:56:34",
+		"rssi": -80,
+		"security": "WPA/WPA2-PSK"
+	},
+	{
+		"channel": 8,
+		"hidden": false,
+		"ssid": "Van Huy",
+		"bssid": "cc:2d:21:b4:5e:88",
+		"rssi": -80,
+		"security": "WPA/WPA2-PSK"
+	},
+	{
+		"channel": 1,
+		"hidden": false,
+		"ssid": "chicute",
+		"bssid": "24:69:68:22:5c:54",
+		"rssi": -81,
+		"security": "WPA/WPA2-PSK"
+	},
+	{
+		"channel": 6,
+		"hidden": false,
+		"ssid": "hoan3346",
+		"bssid": "a8:5e:45:68:7f:28",
+		"rssi": -81,
+		"security": "WPA2-PSK"
+	},
+	{
+		"channel": 1,
+		"hidden": false,
+		"ssid": "Duy Khanh",
+		"bssid": "ec:84:b4:71:14:d1",
+		"rssi": -82,
+		"security": "WPA/WPA2-PSK"
+	},
+	{
+		"channel": 3,
+		"hidden": false,
+		"ssid": "Thanh",
+		"bssid": "0c:01:4b:18:a4:04",
+		"rssi": -84,
+		"security": "WPA/WPA2-PSK"
+	},
+	{
+		"channel": 4,
+		"hidden": false,
+		"ssid": "Huy Hoang",
+		"bssid": "26:0b:2a:cc:32:d3",
+		"rssi": -84,
+		"security": "WPA2-PSK"
+	},
+	{
+		"channel": 6,
+		"hidden": false,
+		"ssid": "613",
+		"bssid": "a8:25:eb:21:f9:71",
+		"rssi": -84,
+		"security": "WPA/WPA2-PSK"
+	},
+	{
+		"channel": 11,
+		"hidden": false,
+		"ssid": "Khoi nguyen",
+		"bssid": "9c:21:6a:56:95:7c",
+		"rssi": -84,
+		"security": "WPA/WPA2-PSK"
+	},
+	{
+		"channel": 6,
+		"hidden": false,
+		"ssid": "Sparta 2.4G",
+		"bssid": "9c:1c:12:8b:bb:62",
+		"rssi": -85,
+		"security": "WPA2-PSK"
+	},
+	{
+		"channel": 11,
+		"hidden": false,
+		"ssid": "Phong Van 2.4G",
+		"bssid": "d4:9a:a0:f6:af:80",
+		"rssi": -85,
+		"security": "WPA/WPA2-PSK"
+	},
+	{
+		"channel": 9,
+		"hidden": false,
+		"ssid": "Bảo Phúc",
+		"bssid": "5c:6a:ec:41:c3:19",
+		"rssi": -86,
+		"security": "UNKN"
+	},
+	{
+		"channel": 6,
+		"hidden": false,
+		"ssid": "WiFi 456",
+		"bssid": "a8:15:4d:c2:8d:a6",
+		"rssi": -87,
+		"security": "WPA/WPA2-PSK"
+	},
+	{
+		"channel": 11,
+		"hidden": false,
+		"ssid": "Tang 2",
+		"bssid": "80:69:33:f0:c2:b4",
+		"rssi": -87,
+		"security": "WPA2-PSK"
+	},
+	{
+		"channel": 11,
+		"hidden": false,
+		"ssid": "Nem nướng Nha Trang",
+		"bssid": "40:ee:15:86:79:28",
+		"rssi": -87,
+		"security": "WPA2-PSK"
+	},
+	{
+		"channel": 1,
+		"hidden": false,
+		"ssid": "Internet",
+		"bssid": "fc:d7:33:1b:81:26",
+		"rssi": -88,
+		"security": "WPA/WPA2-PSK"
+	},
+	{
+		"channel": 1,
+		"hidden": false,
+		"ssid": "TP-LINK_DEB6",
+		"bssid": "c4:e9:84:f1:de:b6",
+		"rssi": -88,
+		"security": "WPA2-PSK"
+	},
+	{
+		"channel": 1,
+		"hidden": false,
+		"ssid": "MEHST2",
+		"bssid": "d4:9a:a0:dd:54:92",
+		"rssi": -88,
+		"security": "WPA/WPA2-PSK"
+	},
+	{
+		"channel": 11,
+		"hidden": false,
+		"ssid": "Sparta 2.4G",
+		"bssid": "40:e3:d6:f2:ba:a2",
+		"rssi": -88,
+		"security": "WPA2-PSK"
+	},
+	{
+		"channel": 1,
+		"hidden": false,
+		"ssid": "WL-2G-AP2",
+		"bssid": "d6:9a:a0:9d:54:92",
+		"rssi": -89,
+		"security": "WPA/WPA2-PSK"
+	},
+	{
+		"channel": 1,
+		"hidden": false,
+		"ssid": "Hai Sax_2.4G",
+		"bssid": "60:59:47:88:58:68",
+		"rssi": -89,
+		"security": "WPA/WPA2-PSK"
+	},
+	{
+		"channel": 2,
+		"hidden": false,
+		"ssid": "Quyen Minh 2.4GHz",
+		"bssid": "c4:71:54:03:b5:a5",
+		"rssi": -89,
+		"security": "WPA2-PSK"
+	},
+	{
+		"channel": 3,
+		"hidden": false,
+		"ssid": "Rosy spa",
+		"bssid": "68:9e:29:ac:bf:be",
+		"rssi": -89,
+		"security": "WPA/WPA2-PSK"
+	},
+	{
+		"channel": 6,
+		"hidden": false,
+		"ssid": "WiFi 567",
+		"bssid": "28:2c:b2:4a:dc:14",
+		"rssi": -89,
+		"security": "WPA/WPA2-PSK"
+	},
+	{
+		"channel": 1,
+		"hidden": false,
+		"ssid": "Sparta 2.4G",
+		"bssid": "84:d4:7e:d4:a9:a2",
+		"rssi": -89,
+		"security": "WPA2-PSK"
+	},
+	{
+		"channel": 1,
+		"hidden": false,
+		"ssid": "KHUNG LONG",
+		"bssid": "3c:a7:ae:fd:d8:c5",
+		"rssi": -90,
+		"security": "WPA/WPA2-PSK"
+	},
+	{
+		"channel": 1,
+		"hidden": false,
+		"ssid": "FPT P2001-2.4",
+		"bssid": "f4:0d:9f:6b:3a:18",
+		"rssi": -90,
+		"security": "WPA/WPA2-PSK"
+	},
+	{
+		"channel": 1,
+		"hidden": false,
+		"ssid": "Thuy Linh_2.4G",
+		"bssid": "e4:90:10:6d:41:40",
+		"rssi": -93,
+		"security": "WPA/WPA2-PSK"
+	},
+	{
+		"channel": 2,
+		"hidden": false,
+		"ssid": "Hoàng Hà",
+		"bssid": "50:0f:f5:55:c7:c8",
+		"rssi": -94,
+		"security": "WPA/WPA2-PSK"
+	}
+]

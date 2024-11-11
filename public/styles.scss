@@ -136,6 +136,8 @@ body {
 				}
 
 				.wifi-item {
+					position: relative;
+
 					display: flex;
 					flex-direction: row;
 					align-items: center;
@@ -144,12 +146,18 @@ body {
 					padding: 1rem 1.5rem;
 					border: 0.2rem solid transparent;
 					border-radius: 2rem;
+					overflow: hidden;
 
 					transition: border 0.3s cubic-bezier(0.25, 1, 0.5, 1);
 					cursor: pointer;
 
+					> .material-symbols {
+						z-index: 1;
+					}
+
 					> .info {
 						flex-grow: 1;
+						z-index: 1;
 
 						> .ssid {
 							display: flex;
@@ -174,12 +182,17 @@ body {
 							font-size: 0.85rem;
 							color: var(--text-secondary);
 						}
+
+						> .status {
+							margin-top: 0.5rem;
+						}
 					}
 
 					> .lock {
 						font-size: 1.25rem;
 						color: var(--text-secondary);
 						opacity: 0.5;
+						z-index: 1;
 					}
 
 					> .action {
@@ -188,6 +201,7 @@ body {
 						color: var(--text-secondary);
 						background-color: color-mix(in srgb, var(--background-1) 50%, transparent);
 						border-radius: 2rem;
+						z-index: 1;
 					}
 
 					&:hover {
@@ -204,6 +218,25 @@ body {
 						transition: unset;
 						border-color: var(--border);
 						background-color: var(--background-2);
+					}
+
+					&.connecting {
+						&::before {
+							content: "";
+							position: absolute;
+							display: block;
+
+							left: -12rem;
+							top: 0;
+							width: 0;
+							height: 100%;
+							box-shadow: 0 0 12rem 6rem var(--accent-1);
+
+							animation-name: wifi-item-sweep;
+							animation-duration: 1.5s;
+							animation-timing-function: linear;
+							animation-iteration-count: infinite;
+						}
 					}
 
 					&.connected {
@@ -249,5 +282,15 @@ body {
 				}
 			}
 		}
+	}
+}
+
+@keyframes wifi-item-sweep {
+	0% {
+		transform: translateX(0);
+	}
+
+	100% {
+		transform: translateX(62rem);
 	}
 }

@@ -2338,18 +2338,20 @@ function sanitizeHTML(html) {
 
 /**
  * Create Input Element, require `input.css`
- * @param	{Object}							options
+ *
+ * @param	{object}							options
  * @param	{CreateInputTypes}					options.type
- * @param	{String}							options.id
- * @param	{String}							options.label
- * @param	{String}							options.value
+ * @param	{string}							options.id
+ * @param	{string}							options.label
+ * @param	{string}							options.value
  * @param	{"blue" | "purple" | "red"}			options.color
- * @param	{Boolean}							options.required
- * @param	{Boolean}							options.autofill
- * @param	{Boolean}							options.spellcheck
- * @param	{Object<string, any>}				options.options
- * @param	{Boolean}							options.animated
- * @param	{Boolean}							options.disabled
+ * @param	{boolean}							options.required
+ * @param	{boolean}							options.autofill
+ * @param	{boolean}							options.spellcheck
+ * @param	{{[key: string]: string}}			options.options
+ * @param	{{[unit: string]: string}}			[options.units]
+ * @param	{boolean}							options.animated
+ * @param	{boolean}							options.disabled
  */
 function createInput({
 	type = "text",
@@ -2358,9 +2360,11 @@ function createInput({
 	value = "",
 	color = "blue",
 	required = false,
+	withEnableSwitch = false,
 	autofill = true,
 	spellcheck = false,
 	options = {},
+	units = null,
 	animated = false,
 	disabled = false
 } = {}) {
@@ -2368,10 +2372,43 @@ function createInput({
 	// Some types are not included because there are api to create that specific input
 	//
 	// See https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#input_types
-	if (!["text", "textarea", "email", "password", "color", "number", "date", "time", "select", "file", "datetime-local", "month", "week", "tel", "url"].includes(type))
+	if (!["text", "textarea", "email", "password", "color", "number", "float", "date", "time", "select", "file", "datetime-local", "month", "week", "tel", "url"].includes(type))
 		throw { code: -1, description: `createInput(${type}): Invalid type: ${type}` }
 
-	let container = makeTree("span", "sq-input", {
+	if (required)
+		label += "*";
+
+	let enableSwitch = null;
+	let unitSelect = null;
+
+	if (["date", "time", "datetime-local", "month", "week"].includes(type) && !required)
+		withEnableSwitch = true;
+
+	if (withEnableSwitch) {
+		enableSwitch = createCheckbox({
+			label: app.string("enable"),
+			color,
+			value: false
+		});
+	}
+
+	if (units) {
+		unitSelect = document.createElement("select");
+		unitSelect.classList.add("units");
+		unitSelect.id = `${id}_units`;
+
+		for (const [unit, display] of Object.entries(units)) {
+			const option = document.createElement("option");
+			option.value = unit;
+			option.innerHTML = display;
+
+			unitSelect.appendChild(option);
+		}
+	}
+
+	const container = makeTree("span", "sq-input", {
+		enable: enableSwitch,
+
 		input: {
 			tag: ["textarea", "select"].includes(type) ? type : "input",
 			class: "input",
@@ -2394,6 +2431,8 @@ function createInput({
 			trailing: { tag: "span", class: ["notch", "trailing"] }
 		}},
 
+		units: unitSelect,
+
 		message: { tag: "div", class: "message" }
 	});
 
@@ -2401,8 +2440,30 @@ function createInput({
 	container.dataset.soundhoversoft = "";
 	container.dataset.soundselectsoft = "";
 
+	if (type === "float")
+		container.input.step = "any";
+
 	if (animated)
 		container.setAttribute("animated", true);
+
+	if (withEnableSwitch) {
+		container.classList.add("with-enable-switch");
+
+		(new MutationObserver(() => {
+			enableSwitch.input.checked = !container.input.disabled;
+
+			if (unitSelect)
+				unitSelect.disabled = container.input.disabled;
+		})).observe(container.input, {
+			subtree: false,
+			childList: false,
+			attributes: true,
+			attributeFilter: ["disabled"]
+		});
+	}
+
+	if (unitSelect)
+		container.classList.add("has-unit-select");
 
 	if (typeof sounds === "object")
 		sounds.applySound(container, ["soundhoversoft", "soundselectsoft"]);
@@ -2415,8 +2476,8 @@ function createInput({
 			break;
 
 		case "select": {
-			for (let key of Object.keys(options)) {
-				let option = document.createElement("option");
+			for (const key of Object.keys(options)) {
+				const option = document.createElement("option");
 				option.value = key;
 				option.innerHTML = options[key];
 
@@ -2429,9 +2490,10 @@ function createInput({
 
 	// Events
 	let currentColor = color;
-	let onInputHandlers = [];
-	let onChangeHandlers = [];
-	let validateHandlers = [];
+	const onInputHandlers = [];
+	const onChangeHandlers = [];
+	const validateHandlers = [];
+	const disabledHandlers = [];
 
 	container.input.disabled = disabled;
 	container.input.addEventListener("input", (e) => onInputHandlers.forEach(f => f(container.input.value, e)));
@@ -2440,7 +2502,7 @@ function createInput({
 
 	// Event for validating input.
 	container.input.addEventListener("input", () => {
-		for (let handler of validateHandlers) {
+		for (const handler of validateHandlers) {
 			if (!handler()) {
 				container.dataset.color = "red";
 				break;
@@ -2451,11 +2513,25 @@ function createInput({
 		container.dataset.color = currentColor;
 	});
 
+	if (enableSwitch) {
+		container.input.disabled = !enableSwitch.input.checked;
+
+		enableSwitch.input.addEventListener("change", () => {
+			container.input.disabled = !enableSwitch.input.checked;
+
+			for (const handler of disabledHandlers)
+				handler(container.input.disabled);
+		});
+	}
+
 	return {
 		group: container,
 
 		/** @type {HTMLInputElement} */
 		input: container.input,
+
+		enableSwitch,
+		unitSelect,
 
 		set({
 			value,
@@ -2467,8 +2543,8 @@ function createInput({
 			if (typeof options === "object" && container.input.tagName.toLowerCase() === "select") {
 				emptyNode(container.input);
 
-				for (let key of Object.keys(options)) {
-					let option = document.createElement("option");
+				for (const key of Object.keys(options)) {
+					const option = document.createElement("option");
 					option.value = key;
 					option.innerHTML = options[key];
 
@@ -2482,14 +2558,16 @@ function createInput({
 				container.input.dispatchEvent(new Event("change"));
 			}
 
-			if (label)
-				container.input.innerText = label;
+			if (label) {
+				container.input.placeholder = label;
+				container.outline.label.label.innerText = label;
+			}
 
 			if (typeof color === "string") {
 				container.dataset.color = color;
 				currentColor = color;
 			}
-			
+
 			if (typeof message === "string") {
 				container.classList.add("message");
 				container.dataset.color = "red";
@@ -2515,6 +2593,26 @@ function createInput({
 
 		set disabled(disabled) {
 			container.input.disabled = disabled;
+
+			if (enableSwitch)
+				enableSwitch.input.checked = !disabled;
+
+			for (const handler of disabledHandlers)
+				handler(container.input.disabled);
+		},
+
+		get unit() {
+			if (!unitSelect)
+				return null;
+
+			return unitSelect.value;
+		},
+
+		set unit(unit) {
+			if (!unitSelect)
+				return;
+
+			unitSelect.value = unit;
 		},
 
 		validate(f) {
@@ -2525,25 +2623,41 @@ function createInput({
 		},
 
 		/**
-		 * @param {function} f
+		 * Add handler for input event.
+		 *
+		 * @param	{(value: string, event: Event) => void}		handler
 		 */
-		onInput(f) {
-			if (typeof f !== "function")
+		onInput(handler) {
+			if (typeof handler !== "function")
 				throw { code: -1, description: `createInput(${type}).onInput(): Not a valid function` }
 
-			onInputHandlers.push(f);
-			f(container.input.value, null);
+			onInputHandlers.push(handler);
+			handler(container.input.value, null);
 		},
 
 		/**
-		 * @param {function} f
+		 * Add handler for value change event.
+		 *
+		 * @param	{(value: string, event: Event) => void}		handler
 		 */
-		onChange(f) {
-			if (typeof f !== "function")
+		onChange(handler) {
+			if (typeof handler !== "function")
 				throw { code: -1, description: `createInput(${type}).onChange(): Not a valid function` }
 
-			onChangeHandlers.push(f);
-			f(container.input.value, null);
+			onChangeHandlers.push(handler);
+			handler(container.input.value, null);
+		},
+
+		/**
+		 * Add handler for value change event.
+		 *
+		 * @param	{(disabled: boolean) => void}		handler
+		 */
+		onDisabled(handler) {
+			if (typeof handler !== "function")
+				throw { code: -1, description: `createInput(${type}).onDisabled(): Not a valid function` }
+
+			disabledHandlers.push(handler);
 		}
 	}
 }
@@ -4157,17 +4271,21 @@ function clog(level, ...args) {
 }
 
 const popup = {
+	/**
+	 * @typedef {"okay" | "warning" | "error" | "offline" | "confirm" | "info"} PopupLevel
+	 */
+
 	/** @type {TreeDOM} */
 	popup: undefined,
 
 	/** @type {TreeDOM} */
 	popupNode: undefined,
 
-	/** @type {TriangleBackground} */
-	background: undefined,
-
 	initialized: false,
 	showing: false,
+
+	/** @type {{ [name: String]: SQButton }} */
+	buttons: {},
 
 	levelTemplate: {
 		light: {
@@ -4188,6 +4306,24 @@ const popup = {
 		}
 	},
 
+	/** @type {(value) => void} */
+	currentResolveFunction: null,
+
+	/**
+	 * @typedef {{
+	 * 	text: String
+	 * 	color: String
+	 * 	icon: String
+	 * 	full: Boolean
+	 * 	resolve: Boolean
+	 * 	holdToConfirm: ?Number
+	 * 	onClick: (e: Event) => {}
+	 * }} PopupButtonItem
+	 */
+
+	/**
+	 * Initialize popup.
+	 */
 	init() {
 		this.popupNode = makeTree("div", "popupContainer", {
 			popup: { tag: "div", class: "popupWindow", child: {
@@ -4197,14 +4333,12 @@ const popup = {
 						close: { tag: "span", class: "close", title: "Đóng" }
 					}},
 
-					icon: { tag: "icon" },
 					text: { tag: "t", class: "text" }
 				}},
 
 				body: { tag: "div", class: "body", child: {
 					top: { tag: "div", class: "top", child: {
-						message: { tag: "t", class: "message" },
-						description: { tag: "t", class: "description" }
+						message: { tag: "t", class: "message" }
 					}},
 
 					note: createNote(),
@@ -4224,20 +4358,37 @@ const popup = {
 		this.initialized = true;
 	},
 
+	/**
+	 * Show the popup
+	 *
+	 * @param	{object}									options
+	 * @param	{string}									options.windowTitle
+	 * @param	{string}									options.title
+	 * @param	{string}									options.message
+	 * @param	{?string}									[options.note]
+	 * @param	{"okay" | "info" | "warning" | "error"}		[options.noteLevel]
+	 * @param	{PopupLevel}								options.level
+	 * @param	{string}									options.icon
+	 * @param	{string}									options.bgColor
+	 * @param	{"light" | "dark"}							options.headerTheme
+	 * @param	{"light" | "dark"}							options.bodyTheme
+	 * @param	{HTMLElement}								options.customNode
+	 * @param	{{ [id: String]: PopupButtonItem }}			options.buttons
+	 * @param	{boolean}									options.cancelable
+	 */
 	show({
 		windowTitle = "Popup",
 		title = "Title",
 		message = "Message",
-		description = "Description",
 		note = null,
 		noteLevel = null,
 		level = "info",
-		icon = null,
 		bgColor = null,
 		headerTheme = null,
 		bodyTheme = null,
 		customNode = null,
-		buttonList = {}
+		buttons = {},
+		cancelable = true
 	} = {}) {
 		return new Promise((resolve, reject) => {
 			if (!this.initialized) {
@@ -4245,6 +4396,7 @@ const popup = {
 				return;
 			}
 
+			this.currentResolveFunction = resolve;
 			this.popup.dataset.level = level;
 
 			//* THEME
@@ -4257,15 +4409,15 @@ const popup = {
 			else
 				reject({ code: -1, description: `Unknown level: ${level}` })
 
-			this.background = triBg(this.popup.header, {
+			triBg(this.popup.header, {
 				scale: 4,
-				speed: 64,
+				style: "fill",
+				speed: 32,
 				color: (typeof bgColor === "string")
 					? bgColor
 					: template.bg
 			});
 
-			this.popup.header.icon.dataset.icon = (typeof icon === "string") ? icon : template.icon;
 			this.popup.header.setAttribute("theme", (typeof headerTheme === "string") ? headerTheme : template.h);
 			this.popup.body.setAttribute("theme", (typeof bodyTheme === "string") ? bodyTheme : template.b);
 
@@ -4275,7 +4427,6 @@ const popup = {
 
 			//* BODY
 			this.popup.body.top.message.innerHTML = message;
-			this.popup.body.top.description.innerHTML = description;
 
 			if (note) {
 				this.popup.body.note.group.style.display = null;
@@ -4286,40 +4437,56 @@ const popup = {
 			} else
 				this.popup.body.note.group.style.display = "none";
 
-			if (customNode && customNode.classList) {
+			if (isElement(customNode)) {
 				customNode.classList.add("customNode");
 				this.popup.body.replaceChild(customNode, this.popup.body.customNode);
 				this.popup.body.customNode = customNode;
 			} else
 				this.popup.body.customNode.style.display = "none";
 
-			//* BODY BUTTON
-			this.popup.header.top.close.onclick = () => {
-				resolve("close");
-				this.hide();
+			if (!cancelable) {
+				this.popup.header.top.close.style.display = "none";
+			} else {
+				this.popup.header.top.close.style.display = null;
+				this.popup.header.top.close.onclick = () => {
+					resolve("close");
+					this.hide();
+				}
 			}
 
 			emptyNode(this.popup.body.button);
-			let buttonKeyList = Object.keys(buttonList);
-			
+			this.buttons = {};
+			let buttonKeyList = Object.keys(buttons);
+
 			for (let key of buttonKeyList) {
-				let item = buttonList[key];
+				let item = buttons[key];
+
+				const activate = () => {
+					resolve(key);
+
+					if (item.close !== false)
+						this.hide();
+				}
 
 				let button = createButton(item.text || "Text", {
 					color: item.color,
 					icon: item.icon || null,
-					complex: !!item.complex
+					holdToConfirm: item.holdToConfirm || null,
+					onConfirm: async () => {
+						await delayAsync(500);
+						activate();
+					}
 				});
 
 				button.classList.add(item.full ? "full" : "normal");
 				button.onclick = item.onClick || null;
 				button.returnValue = key;
+				this.buttons[key] = button;
 
-				if (!(typeof item.resolve === "boolean") || item.resolve !== false)
-					button.addEventListener("mouseup", () => {
-						resolve(key);
-						this.hide();
-					});
+				if (!(typeof item.resolve === "boolean") || item.resolve !== false) {
+					if (typeof item.holdToConfirm !== "number")
+						button.addEventListener("mouseup", () => activate());
+				}
 
 				this.popup.body.button.appendChild(button);
 			}
@@ -4334,7 +4501,8 @@ const popup = {
 
 	/**
 	 * Update popup's message
-	 * @param	{String}	message
+	 *
+	 * @param	{string}	message
 	 */
 	set message(message) {
 		this.popupNode.popup.body.top.message.innerText = message;
@@ -4348,7 +4516,11 @@ const popup = {
 
 		this.showing = false;
 		emptyNode(this.popup.body.button);
-		emptyNode(this.popup.body.customNode);
+
+		if (this.currentResolveFunction) {
+			this.currentResolveFunction("close");
+			this.currentResolveFunction = null;
+		}
 	}
 }
 

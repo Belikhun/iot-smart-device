@@ -55,8 +55,11 @@ async def connect_wifi(ssid: str = None, password: str = None):
 		password = config("password")
 
 	log("INFO", f"Trying to connect to wifi [{ssid}] (password={password})...")
-	
-	WIFI_STA.connect(ssid, password)
+
+	if password:
+		WIFI_STA.connect(ssid, password)
+	else:
+		WIFI_STA.connect(ssid)
 
 	failed = False
 	tries = 1
@@ -84,7 +87,7 @@ async def connect_wifi(ssid: str = None, password: str = None):
 	if (failed):
 		log("ERRR", f"Connection to \"{ssid}\" failed")
 		return False
-	
+
 	log("OKAY", f"Successfully connected to wifi {ssid}")
 	print_ifconfig(WIFI_STA.ifconfig())
 

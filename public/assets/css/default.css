@@ -830,6 +830,195 @@ body.dark separator {
 	}
 }
 
+/** ======================== POPUP ======================== **/
+
+.popupContainer {
+	position: fixed;
+	display: none;
+	align-items: center;
+	justify-content: center;
+	top: 0;
+	left: 0;
+	bottom: 0;
+	right: 0;
+
+	z-index: 999;
+    background-color: rgba(236, 236, 236, 0.8);
+}
+
+.popupContainer.show {
+	display: flex;
+}
+
+.popupContainer > .popupWindow {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+
+	width: 100%;
+	max-width: 520px;
+	max-height: calc(100% - 40px);
+	border-radius: 1rem;
+	box-shadow: rgba(0, 0, 0, 0.1) 0 10px 50px;
+	overflow: hidden;
+}
+
+.popupContainer > .popupWindow > .header {
+	position: relative;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	flex-grow: 0;
+	flex-shrink: 0;
+
+	gap: 1rem;
+	padding: 2rem 1rem;
+}
+
+.popupContainer > .popupWindow > .header > .top {
+	position: absolute;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 2rem;
+}
+
+.popupContainer > .popupWindow > .header > .top > .windowTitle {
+	flex-grow: 1;
+	font-size: 0.8rem;
+	color: black;
+	margin-left: 1rem;
+}
+
+.popupContainer > .popupWindow > .header > .top > .close {
+	position: relative;
+	display: flex;
+	flex-shrink: 0;
+	align-items: center;
+	justify-content: center;
+    width: 3rem;
+    height: 100%;
+	cursor: pointer;
+
+	background-color: transparent;
+	transition: background-color 0.2s ease-out;
+}
+
+.popupContainer > .popupWindow > .header > .top > .close::before,
+.popupContainer > .popupWindow > .header > .top > .close::after {
+	content: "";
+	position: absolute;
+    width: 16px;
+	height: 1px;
+
+	background-color: #425161;
+	transition: background-color 0.2s ease-out;
+
+}
+
+.popupContainer > .popupWindow > .header > .top > .close::before {
+	transform: rotate(45deg);
+}
+
+.popupContainer > .popupWindow > .header > .top > .close::after {
+	transform: rotate(-45deg);
+}
+
+.popupContainer > .popupWindow > .header > .top > .close:hover {
+	background-color: #E81123;
+}
+
+.popupContainer > .popupWindow > .header > .top > .close:hover::before,
+.popupContainer > .popupWindow > .header > .top > .close:hover::after {
+	background-color: #ffffff !important;
+}
+
+.popupContainer > .popupWindow > .header > icon {
+	position: relative;
+	display: block;
+
+	font-size: 2rem;
+	color: var(--text-primary);
+}
+
+.popupContainer > .popupWindow > .header > .text {
+	margin-top: 0.1rem;
+
+	font-family: var(--heading-font);
+	font-weight: 800;
+	font-size: 1.5rem;
+	text-align: left;
+	letter-spacing: .3px;
+	color: var(--text-primary);
+}
+
+.popupContainer > .popupWindow > .header[theme="light"] > .top > .windowTitle {
+	color: white;
+}
+
+.popupContainer > .popupWindow > .header[theme="light"] > .top > .close::before,
+.popupContainer > .popupWindow > .header[theme="light"] > .top > .close::after {
+	background-color: rgb(224, 224, 224);
+}
+
+.popupContainer > .popupWindow > .header[theme="light"] > icon::after,
+.popupContainer > .popupWindow > .header[theme="light"] > .text {
+	color: rgb(255, 255, 255);
+}
+
+.popupContainer > .popupWindow > .body {
+	position: relative;
+	display: flex;
+    flex-direction: column;
+	flex-grow: 1;
+	flex-shrink: 1;
+	gap: 1rem;
+
+	margin-top: -1rem;
+	padding: 1rem;
+	overflow: hidden;
+	background-color: rgb(255, 255, 255);
+	border-radius: 1rem;
+}
+
+.popupContainer > .popupWindow > .body > .top > .message {
+	font-size: 0.9rem;
+}
+
+.popupContainer > .popupWindow > .body > .customNode {
+	position: relative;
+	flex-shrink: 1;
+}
+
+.popupContainer > .popupWindow > .body > .buttonGroup {
+    position: relative;
+    display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	justify-content: flex-end;
+	gap: 1rem;
+}
+
+.popupContainer > .popupWindow > .body > .buttonGroup > .sq-btn {
+	flex: 0 1 8rem;
+}
+
+.popupContainer > .popupWindow > .body > .buttonGroup > .sq-btn.full {
+	min-width: calc(100% - 1rem);
+}
+
+.popupContainer > .popupWindow > .body[theme="dark"] {
+	background-color: rgb(44, 44, 44);
+}
+
+.popupContainer > .popupWindow > .body[theme="dark"] > .top > .message {
+	color: rgb(238, 238, 238);
+}
+
 /** ======================== TRIBG ======================== **/
 
 .triBg {

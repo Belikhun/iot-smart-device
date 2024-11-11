@@ -1,29 +1,29 @@
 import uasyncio as asyncio
-from ahttpserver import HTTPResponse, HTTPServer, sendfile
-from logger import scope
+from ahttpserver import HTTPRequest, HTTPResponse, HTTPServer, sendfile
+from logger import scope, get_logs
 import json
 import ubinascii
 from config import config
 from utils import send_response_in_chunks
-from wifi import get_wifi_status, get_wifi_if
+from wifi import get_wifi_status, get_wifi_if, connect_wifi
 
 log = scope("http:server")
 server = HTTPServer()
 
 @server.route("GET", "/")
-async def index(reader, writer, request):
+async def index(reader, writer, request: HTTPRequest):
 	response = HTTPResponse(200, "text/html", close=True)
 	await response.send(writer)
 	await sendfile(writer, "public/index.html")
 
 @server.route("GET", "/api/wifi/status")
-async def wifi_status(reader, writer, request):
+async def wifi_status(reader, writer, request: HTTPRequest):
 	interface = get_wifi_if()
 	response_data = {}
 
 	if not interface.isconnected():
 		response_data = {
-			"status": "IDLE"
+			"status": get_wifi_status()
 		}
 	else:
 		mac = ubinascii.hexlify(interface.config("mac")).decode("utf-8")
@@ -49,7 +49,7 @@ async def wifi_status(reader, writer, request):
 	await send_response_in_chunks(writer, response_body)
 
 @server.route("GET", "/api/wifi/scan")
-async def scan_wifi(reader, writer, request):
+async def scan_wifi(reader, writer, request: HTTPRequest):
 	interface = get_wifi_if()
 	scan_result = interface.scan()
 	sec_values = ["OPEN", "WEP", "WPA-PSK", "WPA2-PSK", "WPA/WPA2-PSK", "UNKN", "UNKN", "UNKN", "UNKN"]
@@ -86,9 +86,47 @@ async def scan_wifi(reader, writer, request):
 	await response.send(writer)
 	await send_response_in_chunks(writer, response_body)
 
+@server.route("POST", "/api/wifi/connect")
+async def connect_to_wifi(reader, writer, request: HTTPRequest):
+	ssid = int(request.parameters.get("ssid"))
+	password = int(request.parameters.get("password"))
+
+	if not ssid:
+		raise ValueError("Missing SSID")
+
+	response_data = { "success": connect_wifi(ssid, password) }
+	response_body = json.dumps(response_data).encode("utf-8")
+
+	response = HTTPResponse(200, "application/json", close=True, header={
+		"Content-Length": str(len(response_body))
+	})
+
+	await response.send(writer)
+	await send_response_in_chunks(writer, response_body)
+
+@server.route("GET", "/api/logs")
+async def server_log(reader, writer, request: HTTPRequest):
+	index = int(request.parameters.get("index", 0))
+	response_body = json.dumps(get_logs(index)).encode("utf-8")
+
+	response = HTTPResponse(200, "application/json", close=True, header={
+		"Content-Length": str(len(response_body))
+	})
+
+	await response.send(writer)
+	await send_response_in_chunks(writer, response_body)
+
 @server.route("GET", "/generate_204")
-async def android_portal_check(reader, writer, request):
+async def android_portal_check(reader, writer, request: HTTPRequest):
 	response = HTTPResponse(301, "text/html", True, {
+		"Location": "http://device.local/"
+	})
+
+	await response.send(writer)
+
+@server.route("GET", "/hotspot-detect.html")
+async def ios_portal_check(reader, writer, request: HTTPRequest):
+	response = HTTPResponse(302, "text/html", True, {
 		"Location": "http://device.local/"
 	})
 
