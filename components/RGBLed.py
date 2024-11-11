@@ -11,6 +11,7 @@ class RGBLed:
 
 		# Set initial color to off
 		self.current_color = (0, 0, 0)
+		self.animation_playing = False
 		self._animation_task = None
 
 	def set_color_raw(self, red_val, green_val, blue_val):
@@ -53,11 +54,20 @@ class RGBLed:
 		self.blue.deinit()
 
 	async def animate(self, animation_type, color=None, duration=0.5, interval=0.01):
+		self.animation_playing = True
+
 		if animation_type == "blink":
 			while True:
+				if not self.animation_playing:
+					return
+
 				# Set LED to the desired color
 				self.set_color_raw(*color)
 				await asyncio.sleep(duration)
+
+				if not self.animation_playing:
+					return
+
 				# Turn off LED
 				self.off()
 				await asyncio.sleep(duration)
@@ -67,19 +77,30 @@ class RGBLed:
 			min_brightness = 0
 			
 			while True:
+				if not self.animation_playing:
+					return
+
 				# Fade in
 				for duty in range(min_brightness, max_brightness + 1, 20):
 					self.set_color_raw(int(duty * color[0] / max_brightness), 
 									int(duty * color[1] / max_brightness), 
 									int(duty * color[2] / max_brightness))
+
 					await asyncio.sleep(interval)
+
+					if not self.animation_playing:
+						return
 
 				# Fade out
 				for duty in range(max_brightness, min_brightness - 1, -20):
 					self.set_color_raw(int(duty * color[0] / max_brightness), 
 									int(duty * color[1] / max_brightness), 
 									int(duty * color[2] / max_brightness))
+
 					await asyncio.sleep(interval)
+
+					if not self.animation_playing:
+						return
 
 	def start_animation(self, animation_type, color=None, duration=0.5, interval=0.01):
 		if color is None:
@@ -97,3 +118,4 @@ class RGBLed:
 			self._animation_task = None
 
 		self.set_color_raw(*self.current_color)
+		self.animation_playing = False

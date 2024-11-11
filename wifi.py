@@ -2,7 +2,7 @@ import network
 from config import config, set_config, save_config
 from logger import scope
 import uasyncio as asyncio
-from utils import hw_id, status_led
+from utils import hw_id, status_led, status_buzz
 
 log = scope("wifi")
 WIFI_STA = None
@@ -26,8 +26,12 @@ def start_access_point():
 	print_ifconfig(WIFI_AP.ifconfig())
 
 def stop_access_point():
-	log("INFO", "Turning off access point...")
-	WIFI_AP.active(False)
+	global WIFI_AP
+
+	if WIFI_AP:
+		log("INFO", "Turning off access point...")
+		WIFI_AP.active(False)
+		WIFI_AP = None
 
 def get_ap_ip():
 	global WIFI_AP
@@ -42,9 +46,10 @@ def start_wifi():
 
 def stop_wifi():
 	global WIFI_STA
-	log("INFO", f"Stopping station wifi...")
-	WIFI_STA.active(False)
-	WIFI_STA = None
+	if WIFI_STA:
+		log("INFO", f"Stopping station wifi...")
+		WIFI_STA.active(False)
+		WIFI_STA = None
 
 async def disconnect_wifi():
 	global WIFI_STA
@@ -63,14 +68,14 @@ async def disconnect_wifi():
 
 async def connect_wifi(ssid: str = None, password: str = None):
 	global WIFI_STA
-	status = status_led()
+	statled = status_led()
 
 	if not ssid:
 		ssid = config("ssid")
 		password = config("password")
 
 	log("INFO", f"Trying to connect to wifi [{ssid}] (password={password})...")
-	status.start_animation("blink", color=(0, 255, 0), duration=0.1)
+	statled.start_animation("blink", color=(0, 0, 255), duration=0.1)
 
 	if (WIFI_STA.isconnected()):
 		await disconnect_wifi()
@@ -105,13 +110,15 @@ async def connect_wifi(ssid: str = None, password: str = None):
 
 	if (failed):
 		log("ERRR", f"Connection to \"{ssid}\" failed")
-		status.start_animation("blink", color=(255, 0, 0), duration=0.5)
+		statled.start_animation("blink", color=(255, 0, 0), duration=0.5)
+		status_buzz().do_play_melody([880, 440, 880, 440, 880, 440, 880, 440, 0], 0.15)
 		return False
 
 	log("OKAY", f"Successfully connected to wifi {ssid}")
-	status.stop_animation()
-	status.set_color((0, 255, 0))
 	print_ifconfig(WIFI_STA.ifconfig())
+
+	statled.start_animation("blink", color=(0, 255, 0), duration=1)
+	status_buzz().do_play_melody([523, 659, 784, 1042, 0], 0.15)
 
 	set_config("ssid", ssid)
 	set_config("password", password)
@@ -129,6 +136,7 @@ def get_wifi_if() -> network.WLAN:
 
 def scan_wifi():
 	global WIFI_STA
+	log("INFO", f"Running wifi scan...")
 	return WIFI_STA.scan()
 
 def get_wifi_status():

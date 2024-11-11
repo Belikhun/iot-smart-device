@@ -116,6 +116,10 @@ const app = {
 		this.loadingOverlay = new LoadingOverlay(this.view.panel);
 		this.container.appendChild(this.view);
 
+		new Scrollable(this.container, {
+			content: this.view
+		});
+
 		await Promise.all([
 			this.updateInfo(),
 			this.updateStatus()
@@ -289,6 +293,8 @@ const app = {
 
 					conn.insertBefore(view, conn.firstChild);
 					this.currentConnected = instance;
+					this.view.panel.wifiGroup.content.connectedLabel.style.display = null;
+					this.view.panel.wifiGroup.content.connected.style.display = null;
 				} else {
 					avail.insertBefore(view, avail.firstChild);
 
@@ -497,7 +503,10 @@ const app = {
 			if (!success)
 				throw new Error("Kết nối thất bại");
 		} catch (e) {
+			this.log("WARN", `connectWifi(${instance.ssid}) failed:`, e)
 			view.connected = false;
+			this.view.panel.wifiGroup.content.connectedLabel.style.display = "none";
+			this.view.panel.wifiGroup.content.connected.style.display = "none";
 
 			if (!view.wifi.status)
 				view.status = "Lỗi hệ thống";

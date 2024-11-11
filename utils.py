@@ -1,15 +1,20 @@
 import os
 import machine
-from components import RGBLed
+from components import RGBLed, Buzzer
 
 HARDWARE_ID = None
 
 statled = RGBLed(0, 2, 15)
 statled.start_animation("blink", color=(0, 0, 255))
+statbuz = Buzzer(5)
 
 def status_led():
 	global statled
 	return statled
+
+def status_buzz():
+	global statbuz
+	return statbuz
 
 def hw_id():
 	global HARDWARE_ID
