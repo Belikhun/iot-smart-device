@@ -16,6 +16,14 @@ def status_buzz():
 	global statbuz
 	return statbuz
 
+def uuidv4():
+    random_bytes = bytearray(os.urandom(16))
+    random_bytes[6] = (random_bytes[6] & 0x0F) | 0x40
+    random_bytes[8] = (random_bytes[8] & 0x3F) | 0x80
+    return "{:02x}{:02x}{:02x}{:02x}-{:02x}{:02x}-{:02x}{:02x}-{:02x}{:02x}-{:02x}{:02x}{:02x}{:02x}{:02x}{:02x}".format(
+        *random_bytes
+	)
+
 def hw_id():
 	global HARDWARE_ID
 

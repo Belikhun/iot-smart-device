@@ -2,6 +2,7 @@
 	"ssid": null,
 	"password": null,
 	"server": null,
+	"token": null,
 	"name": "Smart device",
 	"apIp": "192.168.69.1"
 }

@@ -3,9 +3,9 @@ from server import start_server, stop_server, is_portal_opened
 from dns import do_start_dns_server
 import uasyncio as asyncio
 from logger import scope
-from config import config
-from utils import hw_id, status_led, status_buzz
-from client import ws_connect, ws_start_loop, get_ws
+from config import config, set_config
+from utils import hw_id, status_led, status_buzz, uuidv4
+from client import ws_connect, ws_start_loop, get_ws, ws_on_connected, ws_do_send
 from watchdog import start_watchdog
 from device import init_features
 
@@ -114,6 +114,23 @@ async def init_ws_server():
 	ws_start_loop()
 
 	log("OKAY", "Device initialized")
+
+def handle_ws_connected():
+	token = config("token")
+
+	if not token:
+		token = uuidv4()
+		set_config("token", token, save=True)
+
+	data = {
+		"hardwareId": hw_id(),
+		"name": config("name"),
+		"token": token
+	}
+
+	ws_do_send("auth", data)
+
+ws_on_connected(handle_ws_connected)
 
 # Run the main loop
 try:

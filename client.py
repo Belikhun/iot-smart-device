@@ -9,6 +9,7 @@ log = scope("ws")
 WS_CLIENT = WebsocketClient()
 WS_TASK = None
 WS_URL = None
+WS_CONNECTED_HANDLER = None
 WS_DATA_HANDLER = None
 
 def get_ws():
@@ -84,7 +85,7 @@ async def ws_loop():
 		ws_do_reconnect()
 
 def ws_start_loop():
-	global WS_TASK
+	global WS_TASK, WS_CONNECTED_HANDLER
 
 	if WS_TASK:
 		ws_stop_loop()
@@ -92,6 +93,9 @@ def ws_start_loop():
 	log("INFO", "Starting websocket loop task")
 	WS_TASK = asyncio.create_task(ws_loop())
 	status_buzz().do_play_melody([523, 659, 784, 1042, 0], 0.15)
+
+	if WS_CONNECTED_HANDLER:
+		WS_CONNECTED_HANDLER()
 
 def ws_stop_loop():
 	global WS_TASK
@@ -138,6 +142,11 @@ def ws_on_data(callable: callable):
 	global WS_DATA_HANDLER
 	log("INFO", "Websocket data handler registered")
 	WS_DATA_HANDLER = callable
+
+def ws_on_connected(callable: callable):
+	global WS_CONNECTED_HANDLER
+	log("INFO", "Websocket websocket connected handler registered")
+	WS_CONNECTED_HANDLER = callable
 
 def ws_handle_data(recv_data: str):
 	global WS_DATA_HANDLER
