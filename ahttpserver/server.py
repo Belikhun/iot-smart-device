@@ -98,7 +98,8 @@ class HTTPServer:
                         name, value = line.split(b':', 1)
                         request.header[name] = value.strip()
 
-            log("INFO", f"{request.method} {request.path} from {writer.get_extra_info('peername')[0]}")
+            if (request.path != "/api/logs"):
+                log("INFO", f"{request.method} {request.path} from {writer.get_extra_info('peername')[0]}")
 
             # search function which is connected to (method, path)
             func = self._routes.get((request.method, request.path))

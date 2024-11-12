@@ -99,6 +99,10 @@ body {
 			> .group {
 				> .label {
 					position: relative;
+					display: flex;
+					align-items: center;
+					justify-content: space-between;
+
 					margin-top: 1rem;
 					margin-bottom: 1rem;
 
@@ -118,6 +122,10 @@ body {
 						font-size: 1.25rem;
 						color: var(--accent);
 					}
+				}
+
+				> .content {
+					position: relative;
 				}
 			}
 
@@ -358,6 +366,20 @@ body {
 			}
 		}
 	}
+}
+
+.log-viewer {
+	max-height: 22rem;
+	padding: 1rem;
+	box-sizing: border-box;
+
+	border-radius: 1rem;
+	background-color: #1a224b;
+	color: white;
+	font-family: var(--code-font);
+	font-size: 0.85rem;
+	white-space: pre-wrap;
+	overflow: auto;
 }
 
 @keyframes wifi-item-sweep {

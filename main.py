@@ -81,8 +81,10 @@ async def main():
 async def initialized():
 	global MAIN_INITIALIZED
 	await asyncio.sleep_ms(500)
-	
+
 	if not MAIN_INITIALIZED:
+		start_server()
+
 		log("INFO", "Initializing board components...")
 		button = PushButton(25)
 		button.set_on_release(lambda: ws_do_send("led", {}))

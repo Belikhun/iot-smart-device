@@ -28,6 +28,12 @@ async def ws_connect(url, reconnect=False):
 		await asyncio.sleep_ms(50)
 		status_led().set_color((0, 0, 255))
 		status_buzz().stop_tone()
+
+		if ws_is_connected():
+			log("INFO", f"Stopping current websocket connection...")
+			ws_stop_loop()
+			await WS_CLIENT.open(False)
+
 		log("INFO", f"Handshaking to {url}")
 		await asyncio.sleep_ms(500)
 

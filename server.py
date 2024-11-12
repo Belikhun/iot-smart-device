@@ -12,6 +12,7 @@ from client import ws_is_connected, ws_connect, ws_start_loop
 log = scope("http:server")
 server = HTTPServer()
 portal_opened = False
+server_started = False
 
 def is_portal_opened():
 	global portal_opened
@@ -207,11 +208,19 @@ async def ios_portal_check(reader, writer, request: HTTPRequest):
 	await response.send(writer)
 
 def start_server():
-	log("INFO", "Starting configuration portal http server...")
-	asyncio.create_task(server.start())
-	log("OKAY", "Configuration portal http server started")
+	global server_started
+
+	if not server_started:
+		log("INFO", "Starting configuration portal http server...")
+		asyncio.create_task(server.start())
+		log("OKAY", "Configuration portal http server started")
+		server_started = True
 
 def stop_server():
-	log("INFO", "Stopping configuration portal http server...")
-	server.stop()
-	log("INFO", "Stopped configuration portal http server")
+	global server_started
+
+	if server_started:
+		log("INFO", "Stopping configuration portal http server...")
+		server.stop()
+		log("INFO", "Stopped configuration portal http server")
+		server_started = False

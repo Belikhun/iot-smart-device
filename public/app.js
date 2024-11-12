@@ -44,10 +44,20 @@ const app = {
 	/** @type {SQButton} */
 	serverUpdateButton: undefined,
 
+	/** @type {SQButton} */
+	logUpdateButton: undefined,
+
+	/** @type {TreeDOM} */
+	logViewer: undefined,
+
+	/** @type {Scrollable} */
+	logScroll: undefined,
+
 	hwid: null,
 	name: null,
 	isConnecting: false,
 	currentServer: "",
+	logIndex: 0,
 
 	/** @type {{ [name: string]: Blob }} */
 	icons: {},
@@ -77,6 +87,15 @@ const app = {
 			color: "accent",
 			onClick: () => this.connectServer()
 		});
+
+		this.logUpdateButton = createButton("", {
+			icon: "refresh",
+			color: "accent",
+			onClick: () => this.updateLogs()
+		});
+
+		this.logViewer = document.createElement("div");
+		this.logViewer.classList.add("log-viewer");
 
 		this.view = makeTree("div", "device-setup-form", {
 			heading: { tag: "div", class: "heading", child: {
@@ -120,6 +139,17 @@ const app = {
 
 						status: { tag: "div", class: "status", text: "Đang kiểm tra..." }
 					}}
+				}},
+
+				logsGroup: { tag: "div", class: ["group", "logs"], child: {
+					label: { tag: "div", class: "label", child: {
+						text: { tag: "div", class: "text", text: "Nhật kí" },
+						button: this.logUpdateButton
+					}},
+
+					content: { tag: "div", class: "content", child: {
+						viewer: this.logViewer
+					}}
 				}}
 			}},
 
@@ -139,6 +169,10 @@ const app = {
 			content: this.view.panel.wifiGroup.content.availables.inner
 		});
 
+		this.logScroll = new Scrollable(this.view.panel.logsGroup.content, {
+			content: this.logViewer
+		});
+
 		this.loadingOverlay = new LoadingOverlay(this.view.panel);
 		this.container.appendChild(this.view);
 
@@ -153,6 +187,7 @@ const app = {
 
 		this.scanWifi();
 		this.updateServerStatus();
+		this.startUpdateLogs();
 
 		const appLoading = new LoadingOverlay();
 		appLoading.container = $("#app-loading");
@@ -608,6 +643,40 @@ const app = {
 		}
 
 		this.serverUpdateButton.loading = false;
+	},
+
+	async updateLogs() {
+		this.logUpdateButton.loading = true;
+
+		try {
+			const logs = await myajax({
+				url: "/api/logs",
+				method: "GET",
+				query: { index: this.logIndex }
+			});
+
+			for (const line of logs) {
+				const node = document.createElement("div");
+				node.innerText = line;
+				this.logViewer.appendChild(node);
+			}
+
+			this.logIndex += logs.length;
+
+			await nextFrameAsync();
+			await nextFrameAsync();
+			this.logScroll.toBottom();
+		} catch(e) {
+			this.log("WARN", `Failed while trying to fetch logs:`, e);
+		}
+
+		this.logUpdateButton.loading = false;
+	},
+
+	async startUpdateLogs() {
+		const start = performance.now();
+		await this.updateLogs();
+		setTimeout(() => this.startUpdateLogs(), 2000 - (performance.now() - start));
 	}
 }
 
