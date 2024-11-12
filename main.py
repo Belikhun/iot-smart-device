@@ -38,6 +38,12 @@ async def main():
 		if is_portal_opened():
 			log("INFO", "Detected a device opening configuration portal. Wifi reconnecting stopped.")
 
+			stop_wifi()
+			await asyncio.sleep(1)
+			start_wifi()
+
+			return
+
 		connectSuccess = await connect_wifi()
 		connect_tries += 1
 
@@ -48,10 +54,22 @@ async def main():
 
 			if (connect_tries > 3):
 				log("INFO", f"Wifi connection failed after {connect_tries} tries. Re-configuration required.")
+
+				stop_wifi()
+				await asyncio.sleep(1)
+				start_wifi()
+
 				return
 
 			log("INFO", f"Retrying to connect in 2 seconds ({connect_tries}/3)")
 			await asyncio.sleep(2)
+
+			log("INFO", f"Restarting wifi interface...")
+			stop_wifi()
+			await asyncio.sleep(1)
+			start_wifi()
+
+			continue
 
 		break
 
