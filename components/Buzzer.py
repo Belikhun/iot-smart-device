@@ -2,7 +2,7 @@ import machine
 import uasyncio as asyncio
 
 class Buzzer:
-	def __init__(self, pin, frequency=1000):
+	def __init__(self, pin: int, frequency=1000):
 		self.pin = pin
 		self.frequency = frequency
 		self.buzzer = machine.PWM(machine.Pin(pin))

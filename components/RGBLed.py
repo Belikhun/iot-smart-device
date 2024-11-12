@@ -3,7 +3,7 @@ from machine import Pin, PWM
 import uasyncio as asyncio
 
 class RGBLed:
-	def __init__(self, red_pin, green_pin, blue_pin):
+	def __init__(self, red_pin: str, green_pin: str, blue_pin: str):
 		self.red = PWM(Pin(red_pin, Pin.OUT), freq=1000)
 		self.green = PWM(Pin(green_pin, Pin.OUT), freq=1000)
 		self.blue = PWM(Pin(blue_pin, Pin.OUT), freq=1000)
@@ -20,7 +20,7 @@ class RGBLed:
 		self.green.duty(green_val)
 		self.blue.duty(blue_val)
 
-	def set_color(self, color_value):
+	def set_color(self, color_value: str | tuple):
 		if isinstance(color_value, tuple) and len(color_value) == 3:
 			# If the input is an RGB tuple
 			if all(0 <= val < 256 for val in color_value):
@@ -53,12 +53,12 @@ class RGBLed:
 		self.green.deinit()
 		self.blue.deinit()
 
-	async def blink(self, color, duration=0.2):
+	async def blink(self, color: str | tuple, duration=0.2):
 		self.set_color(color)
 		await asyncio.sleep(duration)
 		self.off()
 
-	def do_blink(self, color, duration=0.2):
+	def do_blink(self, color: str | tuple, duration=0.2):
 		asyncio.create_task(self.blink(color, duration))
 
 	async def animate(self, animation_type, color=None, duration=0.5, interval=0.01):

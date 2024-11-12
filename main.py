@@ -7,7 +7,7 @@ from config import config
 from utils import hw_id, status_led, status_buzz
 from client import ws_connect, ws_start_loop, get_ws
 from watchdog import start_watchdog
-from features import init_features
+from device import init_features
 
 log = scope("main")
 MAIN_INITIALIZED = False

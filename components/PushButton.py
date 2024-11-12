@@ -3,8 +3,8 @@ import uasyncio as asyncio
 import time
 
 class PushButton:
-	def __init__(self, pin_number, debounce_ms=50):
-		self.pin = Pin(pin_number, Pin.IN)  # No internal pull resistors
+	def __init__(self, pin: int, debounce_ms=50):
+		self.pin = Pin(pin, Pin.IN)  # No internal pull resistors
 		self.debounce_ms = debounce_ms
 		self._last_state = self.pin.value()
 		self._last_time = time.ticks_ms()

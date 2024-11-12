@@ -116,22 +116,23 @@ async def ws_reconnect(delay=2):
 def ws_do_reconnect(delay=2):
 	asyncio.create_task(ws_reconnect(delay))
 
-async def ws_send(command, data):
+async def ws_send(command, data, source="system"):
 	global WS_CLIENT
 
 	timestamp = int(time.time_ns() / 1000000)
 	payload = {
 		"command": command,
+		"source": source,
 		"data": data,
 		"timestamp": int(time.time_ns() / 1000000)
 	}
 
-	log("INFO", f"CMD[@{timestamp}] {command}")
+	log("INFO", f"CMD[{source}@{timestamp}] {command}")
 
 	if await WS_CLIENT.send(json.dumps(payload)):
-		log("OKAY", f"CMD[@{timestamp}] SENT")
+		log("OKAY", f"CMD[{source}@{timestamp}] SENT")
 	else:
-		log("WARN", f"CMD[@{timestamp}] FAILED")
+		log("WARN", f"CMD[{source}@{timestamp}] FAILED")
 
-def ws_do_send(command, data):
-	asyncio.create_task(ws_send(command, data))
+def ws_do_send(command, data, source="system"):
+	asyncio.create_task(ws_send(command, data, source))
