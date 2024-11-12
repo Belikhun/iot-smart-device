@@ -3,10 +3,11 @@ from ahttpserver import HTTPRequest, HTTPResponse, HTTPServer, sendfile
 from logger import scope, get_logs
 import json
 import ubinascii
-from config import config
+from config import config, set_config
 from utils import send_response_in_chunks
 from wifi import get_wifi_status, get_wifi_if, connect_wifi
 from utils import hw_id
+from client import ws_is_connected, ws_connect, ws_start_loop
 
 log = scope("http:server")
 server = HTTPServer()
@@ -132,6 +133,42 @@ async def connect_to_wifi(reader, writer, request: HTTPRequest):
 		"status": get_wifi_status()
 	}
 
+	response_body = json.dumps(response_data).encode("utf-8")
+
+	response = HTTPResponse(200, "application/json", close=True, header={
+		"Content-Length": str(len(response_body))
+	})
+
+	await response.send(writer)
+	await send_response_in_chunks(writer, response_body)
+
+@server.route("GET", "/api/server/status")
+async def server_status(reader, writer, request: HTTPRequest):
+	response_data = {
+		"server": config("server"),
+		"connected": ws_is_connected()
+	}
+
+	response_body = json.dumps(response_data).encode("utf-8")
+
+	response = HTTPResponse(200, "application/json", close=True, header={
+		"Content-Length": str(len(response_body))
+	})
+
+	await response.send(writer)
+	await send_response_in_chunks(writer, response_body)
+
+@server.route("GET", "/api/server/connect")
+async def server_status(reader, writer, request: HTTPRequest):
+	server = request.parameters.get("server")
+	server_addr = "ws://{}/ws/device".format(server)
+	connected = await ws_connect(server_addr, reconnect=False)
+
+	if (connected):
+		set_config("server", server, save=True)
+		ws_start_loop()
+
+	response_data = { "connected": connected }
 	response_body = json.dumps(response_data).encode("utf-8")
 
 	response = HTTPResponse(200, "application/json", close=True, header={

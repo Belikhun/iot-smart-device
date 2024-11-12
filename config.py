@@ -17,7 +17,7 @@ def load_config():
 
 	CONFIG_UPDATED = False
 
-def set_config(key: str, value: str|None):
+def set_config(key: str, value: str|None, save=False):
 	global CONFIG, CONFIG_UPDATED
 
 	if (config(key) == value):
@@ -26,6 +26,9 @@ def set_config(key: str, value: str|None):
 	log("INFO", f"{key:>12} = {value}")
 	CONFIG[key] = value
 	CONFIG_UPDATED = True
+
+	if save:
+		save_config()
 
 def save_config():
 	global CONFIG, CONFIG_UPDATED

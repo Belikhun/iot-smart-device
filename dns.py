@@ -5,6 +5,8 @@ import uasyncio as asyncio
 import gc
 
 log = scope("dns")
+DNS_TASK = None
+DNS_SOCKET = None
 
 class DNSQuery:
 	def __init__(self, data):
@@ -36,11 +38,15 @@ class DNSQuery:
 		return packet
 
 async def start_dns_server():
+	global DNS_SOCKET
+
 	apIp = get_ap_ip()
 	udps = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 	udps.setblocking(False)
 	udps.bind(("0.0.0.0", 53))
+
 	log("OKAY", "DNS server started")
+	DNS_SOCKET = udps
 
 	while True:
 		gc.collect()
@@ -65,3 +71,21 @@ async def start_dns_server():
 			await asyncio.sleep_ms(3000)
 
 		await asyncio.sleep_ms(10)  # Yield to other tasks
+
+def do_start_dns_server():
+	global DNS_TASK
+
+	if not DNS_TASK:
+		log("INFO", "Starting DNS server...")
+		DNS_TASK = asyncio.create_task(start_dns_server())
+
+def do_stop_dns_server():
+	global DNS_TASK, DNS_SOCKET
+
+	if DNS_TASK:
+		log("INFO", "Stopping DNS server...")
+		DNS_TASK.cancel()
+		DNS_TASK = None
+
+		if DNS_SOCKET:
+			DNS_SOCKET.close()

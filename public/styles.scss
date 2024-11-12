@@ -300,6 +300,51 @@ body {
 					}
 				}
 			}
+
+			> .server > .content {
+				> .server-form {
+					display: flex;
+					flex-direction: row;
+					z-index: 1;
+
+					> .osc-input {
+						flex-grow: 1;
+						margin-right: -1rem;
+						z-index: 1;
+					}
+
+					> .sq-btn {
+						padding: 0.5rem 1rem 0.5rem 2rem;
+						font-size: 1rem;
+						border-radius: 1rem;
+						border-top-left-radius: 0;
+						border-bottom-left-radius: 0;
+					}
+				}
+
+				> .status {
+					margin-top: -1rem;
+					padding: 1.25rem 1.5rem 0.25rem;
+					border-bottom-left-radius: 1rem;
+					border-bottom-right-radius: 1rem;
+					
+					font-size: 0.75rem;
+					background-color: var(--osc-color-orange);
+					color: white;
+					
+					&[data-status="connecting"] {
+						background-color: var(--osc-color-blue);
+					}
+					
+					&[data-status="failed"] {
+						background-color: var(--osc-color-red);
+					}
+					
+					&[data-status="connected"] {
+						background-color: var(--green);
+					}
+				}
+			}
 		}
 
 		> .footer {
@@ -322,5 +367,11 @@ body {
 
 	100% {
 		transform: translateX(62rem);
+	}
+}
+
+@media screen and (max-width: 550px) {
+	html {
+		font-size: 12px;
 	}
 }

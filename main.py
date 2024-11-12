@@ -1,6 +1,6 @@
 from wifi import start_access_point, stop_access_point, connect_wifi, start_wifi, stop_wifi, on_wifi_connected
 from server import start_server, stop_server, is_portal_opened
-from dns import start_dns_server
+from dns import do_start_dns_server
 import uasyncio as asyncio
 from logger import scope
 from config import config
@@ -11,15 +11,20 @@ from watchdog import start_watchdog
 
 log = scope("main")
 MAIN_INITIALIZED = False
+CONFIGURE_STARTED = False
 
 log("INFO", f"Hardware Id: {hw_id()}")
 
 start_access_point()
 start_wifi()
 
-async def configure():
-	start_server()
-	asyncio.create_task(start_dns_server())
+def configure():
+	global CONFIGURE_STARTED
+
+	if not CONFIGURE_STARTED:
+		start_server()
+		do_start_dns_server()
+		CONFIGURE_STARTED = True
 
 async def main():
 	status_buzz().do_beep(duration=0.2)
@@ -29,7 +34,7 @@ async def main():
 	if not config("ssid"):
 		log("INFO", "Device haven't been configured")
 		status_led().start_animation("breathe", color=(0, 0, 255))
-		await configure()
+		configure()
 		return
 
 	connect_tries = 0
@@ -49,7 +54,7 @@ async def main():
 
 		if not connectSuccess:
 			if (connect_tries == 1):
-				await configure()
+				configure()
 				log("WARN", "Wifi connection failed! Use configuration portal to re-configure network settings")
 
 			if (connect_tries > 3):
@@ -89,6 +94,8 @@ async def initialized():
 async def init_ws_server():
 	if not config("server"):
 		log("INFO", "Websocket server haven't been configured. Configuration is required in portal.")
+		status_led().start_animation("breathe", color=(0, 255, 0))
+		configure()
 		return
 
 	server_addr = "ws://{}/ws/device".format(config("server"))
@@ -99,6 +106,7 @@ async def init_ws_server():
 
 	if not await ws_connect(server_addr):
 		log("INFO", "Websocket server is not reachable. Re-configuration is required in portal.")
+		status_led().start_animation("breathe", color=(0, 255, 0))
 		configure()
 		return
 
@@ -106,7 +114,6 @@ async def init_ws_server():
 	ws_start_loop()
 
 	log("OKAY", "Device initialized")
-	status_buzz().do_play_melody([523, 659, 784, 1042, 0], 0.15)
 
 # Run the main loop
 try:

@@ -1,7 +1,7 @@
 {
-	"ssid": "Oneclass New",
-	"password": "oneclass123",
-	"server": "192.168.102.27",
+	"ssid": null,
+	"password": null,
+	"server": null,
 	"name": "Smart device",
 	"apIp": "192.168.69.1"
 }

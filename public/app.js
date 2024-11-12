@@ -39,9 +39,15 @@ const app = {
 	/** @type {WifiView} */
 	currentConnected: undefined,
 
+	serverInput: undefined,
+
+	/** @type {SQButton} */
+	serverUpdateButton: undefined,
+
 	hwid: null,
 	name: null,
 	isConnecting: false,
+	currentServer: "",
 
 	/** @type {{ [name: string]: Blob }} */
 	icons: {},
@@ -55,6 +61,21 @@ const app = {
 			style: "round",
 			triangleStyle: "border",
 			onClick: () => this.scanWifi()
+		});
+
+		this.serverInput = createOscInput({
+			type: "text",
+			label: "Địa chỉ",
+			value: "",
+			onInput: (value) => {
+				this.serverUpdateButton.disabled = !(value && value != this.currentServer && this.currentConnected);
+			}
+		});
+
+		this.serverUpdateButton = createButton("", {
+			icon: "chevron_right",
+			color: "accent",
+			onClick: () => this.connectServer()
 		});
 
 		this.view = makeTree("div", "device-setup-form", {
@@ -92,7 +113,12 @@ const app = {
 					}},
 
 					content: { tag: "div", class: "content", child: {
-						
+						form: { tag: "div", class: "server-form", child: {
+							input: this.serverInput,
+							button: this.serverUpdateButton
+						}},
+
+						status: { tag: "div", class: "status", text: "Đang kiểm tra..." }
 					}}
 				}}
 			}},
@@ -126,6 +152,7 @@ const app = {
 		]);
 
 		this.scanWifi();
+		this.updateServerStatus();
 
 		const appLoading = new LoadingOverlay();
 		appLoading.container = $("#app-loading");
@@ -193,6 +220,7 @@ const app = {
 					this.currentConnected.connected = false;
 
 				continuous = false;
+				this.serverUpdateButton.disabled = true;
 			} else if (response.status === "GOT_IP") {
 				const view = this.renderWifi(response);
 
@@ -202,6 +230,7 @@ const app = {
 				view.status = "Đã kết nối";
 				view.view.classList.remove("connecting");
 				continuous = false;
+				this.serverUpdateButton.disabled = false;
 			} else if (this.currentConnected) {
 				const view = this.renderWifi(this.currentConnected.wifi, false);
 				view.status = {
@@ -216,6 +245,8 @@ const app = {
 					view.view.classList.remove("connecting");
 					continuous = false;
 				}
+
+				this.serverUpdateButton.disabled = true;
 			} else {
 				continuous = false;
 			}
@@ -514,6 +545,69 @@ const app = {
 
 		view.view.classList.remove("connecting");
 		this.isConnecting = false;
+	},
+
+	async updateServerStatus() {
+		this.serverUpdateButton.loading = true;
+		const statNode = this.view.panel.serverGroup.content.status;
+
+		try {
+			const { server, connected } = await myajax({
+				url: "/api/server/status",
+				method: "GET"
+			});
+
+			this.serverInput.value = server;
+			this.currentServer = (server) ? server : "";
+
+			if (connected) {
+				statNode.dataset.status = "connected";
+				statNode.innerText = "Đã kết nối tới máy chủ";
+			} else {
+				statNode.dataset.status = "failed";
+				statNode.innerText = "Chưa kết nối tới máy chủ";
+			}
+		} catch (e) {
+			this.log("WARN", `Update server connection status failed:`, e);
+			statNode.dataset.status = "failed";
+			statNode.innerText = "Lỗi khi lấy trạng thái kết nối";
+		}
+
+		this.serverUpdateButton.loading = false;
+		this.serverUpdateButton.disabled = !this.currentConnected;
+	},
+
+	async connectServer() {
+		if (!this.currentConnected)
+			return;
+
+		this.serverUpdateButton.loading = true;
+		const statNode = this.view.panel.serverGroup.content.status;
+
+		try {
+			statNode.dataset.status = "connecting";
+			statNode.innerText = "Đang kết nối tới máy chủ...";
+
+			const { connected } = await myajax({
+				url: "/api/server/connect",
+				method: "GET",
+				query: { server: this.serverInput.value }
+			});
+
+			if (connected) {
+				statNode.dataset.status = "connected";
+				statNode.innerText = "Đã kết nối tới máy chủ";
+			} else {
+				statNode.dataset.status = "failed";
+				statNode.innerText = "Không thể kết nối tới máy chủ";
+			}
+		} catch(e) {
+			this.log("WARN", `Connect to server failed:`, e);
+			statNode.dataset.status = "failed";
+			statNode.innerText = "Lỗi khi kết nối tới máy chủ";
+		}
+
+		this.serverUpdateButton.loading = false;
 	}
 }
 

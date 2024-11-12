@@ -14,6 +14,10 @@ def get_ws():
 	global WS_CLIENT
 	return WS_CLIENT
 
+def ws_is_connected():
+	global WS_CLIENT
+	return WS_CLIENT.is_open()
+
 async def ws_connect(url, reconnect=False):
 	global WS_CLIENT, WS_URL
 
@@ -29,7 +33,7 @@ async def ws_connect(url, reconnect=False):
 
 		if not await WS_CLIENT.handshake(url):
 			log("WARN", "Handshake to server failed")
-			status_led().start_animation("blink", (255, 0, 0), duration=0.15)
+			status_led().start_animation("breathe", color=(0, 0, 255))
 			status_buzz().do_beep(duration=0.2, frequency=820)
 
 			if reconnect:
@@ -42,7 +46,7 @@ async def ws_connect(url, reconnect=False):
 		return True
 	except Exception as e:
 		log("WARN", f"Handshake failed with error: {e}")
-		status_led().start_animation("blink", (255, 0, 0), duration=0.15)
+		status_led().start_animation("breathe", color=(0, 255, 0))
 		status_buzz().do_beep(duration=0.2, frequency=820)
 
 		if reconnect:
@@ -83,7 +87,8 @@ def ws_start_loop():
 		ws_stop_loop()
 
 	log("INFO", "Starting websocket loop task")
-	asyncio.create_task(ws_loop())
+	WS_TASK = asyncio.create_task(ws_loop())
+	status_buzz().do_play_melody([523, 659, 784, 1042, 0], 0.15)
 
 def ws_stop_loop():
 	global WS_TASK
@@ -101,7 +106,6 @@ async def ws_reconnect(delay=2):
 
 	if await ws_connect(WS_URL, reconnect=True):
 		ws_start_loop()
-		status_buzz().do_play_melody([523, 659, 784, 1042, 0], 0.15)
 
 def ws_do_reconnect(delay=2):
 	asyncio.create_task(ws_reconnect(delay))
