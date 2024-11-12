@@ -9,6 +9,7 @@ log = scope("ws")
 WS_CLIENT = WebsocketClient()
 WS_TASK = None
 WS_URL = None
+WS_DATA_HANDLER = None
 
 def get_ws():
 	global WS_CLIENT
@@ -63,7 +64,6 @@ async def ws_connect(url, reconnect=False):
 async def ws_loop():
 	global WS_CLIENT
 
-	recv = []
 	lock = asyncio.Lock()
 
 	try:
@@ -71,10 +71,7 @@ async def ws_loop():
 			data = await WS_CLIENT.recv()
 
 			if data is not None:
-				log("DEBG", f"Data: {data}")
-				await lock.acquire()
-				recv.append(data)
-				lock.release()
+				ws_handle_data(data)
 
 			await asyncio.sleep_ms(50)
 	except Exception as e:
@@ -136,3 +133,20 @@ async def ws_send(command, data, source="system"):
 
 def ws_do_send(command, data, source="system"):
 	asyncio.create_task(ws_send(command, data, source))
+
+def ws_on_data(callable: callable):
+	global WS_DATA_HANDLER
+	log("INFO", "Websocket data handler registered")
+	WS_DATA_HANDLER = callable
+
+def ws_handle_data(recv_data: str):
+	global WS_DATA_HANDLER
+
+	try:
+		data: dict = json.loads(recv_data)
+
+		if (WS_DATA_HANDLER):
+			WS_DATA_HANDLER(data)
+
+	except Exception as e:
+		log("WARN", f"Malformed websocket recv data: {e}")
