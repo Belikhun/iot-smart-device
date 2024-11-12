@@ -5,9 +5,9 @@ import uasyncio as asyncio
 from logger import scope
 from config import config
 from utils import hw_id, status_led, status_buzz
-from components import PushButton
-from client import ws_connect, ws_start_loop, ws_do_send, get_ws
+from client import ws_connect, ws_start_loop, get_ws
 from watchdog import start_watchdog
+from features import init_features
 
 log = scope("main")
 MAIN_INITIALIZED = False
@@ -85,10 +85,8 @@ async def initialized():
 	if not MAIN_INITIALIZED:
 		start_server()
 
-		log("INFO", "Initializing board components...")
-		button = PushButton(25)
-		button.set_on_release(lambda: ws_do_send("led", {}))
-		button.start_listen()
+		log("INFO", "Initializing board components and features...")
+		init_features()
 
 	await init_ws_server()
 	MAIN_INITIALIZED = True
