@@ -1,5 +1,5 @@
 from machine import Pin
-import asyncio
+import uasyncio as asyncio
 import time
 
 class PushButton:

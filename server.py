@@ -10,9 +10,17 @@ from utils import hw_id
 
 log = scope("http:server")
 server = HTTPServer()
+portal_opened = False
+
+def is_portal_opened():
+	global portal_opened
+	return portal_opened
 
 @server.route("GET", "/")
 async def index(reader, writer, request: HTTPRequest):
+	global portal_opened
+	portal_opened = True
+
 	response = HTTPResponse(200, "text/html", close=True)
 	await response.send(writer)
 	await sendfile(writer, "public/index.html")

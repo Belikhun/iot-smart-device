@@ -50,6 +50,9 @@ class WebsocketClient:
 	async def close(self):
 		return await self.open(False)
 
+	def is_open(self):
+		return self._open
+
 	def urlparse(self, uri):
 		"""Parse ws or wss:// URLs"""
 		match = URL_RE.match(uri)
@@ -224,9 +227,8 @@ class WebsocketClient:
 				fin, opcode, data = await self.read_frame()
 			# except (ValueError, EOFError) as ex:
 			except Exception as ex:
-				print('Exception in recv while reading frame:', ex)
 				await self.open(False)
-				return
+				raise ex
 
 			if not fin:
 				raise NotImplementedError()
@@ -249,10 +251,9 @@ class WebsocketClient:
 					# And then continue to wait for a data frame
 					continue
 				except Exception as ex:
-					print('Error sending pong frame:', ex)
 					# If sending the pong frame fails, close the connection
 					await self.open(False)
-					return
+					raise ex
 			elif opcode == OP_CONT:
 				# This is a continuation of a previous frame
 				raise NotImplementedError(opcode)
@@ -261,12 +262,15 @@ class WebsocketClient:
 
 	async def send(self, buf):
 		if not await self.open():
-			return
+			return False
+
 		if isinstance(buf, str):
 			opcode = OP_TEXT
-			buf = buf.encode('utf-8')
+			buf = buf.encode("utf-8")
 		elif isinstance(buf, bytes):
 			opcode = OP_BYTES
 		else:
 			raise TypeError()
+
 		self.write_frame(opcode, buf)
+		return True

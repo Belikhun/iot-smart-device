@@ -53,6 +53,14 @@ class RGBLed:
 		self.green.deinit()
 		self.blue.deinit()
 
+	async def blink(self, color, duration=0.2):
+		self.set_color(color)
+		await asyncio.sleep(duration)
+		self.off()
+
+	def do_blink(self, color, duration=0.2):
+		asyncio.create_task(self.blink(color, duration))
+
 	async def animate(self, animation_type, color=None, duration=0.5, interval=0.01):
 		self.animation_playing = True
 

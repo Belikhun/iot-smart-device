@@ -7,6 +7,7 @@ from utils import hw_id, status_led, status_buzz
 log = scope("wifi")
 WIFI_STA = None
 WIFI_AP = None
+WIFI_CONNECT_HANDLER = None
 
 def start_access_point():
 	global WIFI_AP
@@ -67,7 +68,7 @@ async def disconnect_wifi():
 		set_config("password", None)
 
 async def connect_wifi(ssid: str = None, password: str = None):
-	global WIFI_STA
+	global WIFI_STA, WIFI_CONNECT_HANDLER
 	statled = status_led()
 
 	if not ssid:
@@ -118,13 +119,20 @@ async def connect_wifi(ssid: str = None, password: str = None):
 	print_ifconfig(WIFI_STA.ifconfig())
 
 	statled.start_animation("blink", color=(0, 255, 0), duration=1)
-	status_buzz().do_play_melody([523, 659, 784, 1042, 0], 0.15)
+	status_buzz().do_beep(duration=0.2, frequency=1120)
 
 	set_config("ssid", ssid)
 	set_config("password", password)
 	save_config()
 
+	if WIFI_CONNECT_HANDLER:
+		WIFI_CONNECT_HANDLER()
+
 	return True
+
+def on_wifi_connected(handler):
+	global WIFI_CONNECT_HANDLER
+	WIFI_CONNECT_HANDLER = handler
 
 def get_wifi_ip():
 	global WIFI_STA
@@ -141,20 +149,23 @@ def scan_wifi():
 
 def get_wifi_status():
 	global WIFI_STA
-	status = "UNKNOWN"
+	net_status = WIFI_STA.status()
 
-	if (WIFI_STA.status() == network.STAT_IDLE):
-		status = "IDLE"
-	elif (WIFI_STA.status() == network.STAT_CONNECTING):
-		status = "CONNECTING"
-	elif (WIFI_STA.status() == network.STAT_WRONG_PASSWORD):
-		status = "WRONG_PASSWORD"
-	elif (WIFI_STA.status() == network.STAT_GOT_IP):
-		status = "GOT_IP"
-	elif (WIFI_STA.status() == network.STAT_NO_AP_FOUND):
-		status = "NO_AP_FOUND"
+	if (net_status == network.STAT_IDLE):
+		return "IDLE"
+	elif (net_status == network.STAT_CONNECTING):
+		return "CONNECTING"
+	elif (net_status == network.STAT_WRONG_PASSWORD):
+		return "WRONG_PASSWORD"
+	elif (net_status == network.STAT_GOT_IP):
+		return "GOT_IP"
+	elif (net_status == network.STAT_NO_AP_FOUND):
+		return "NO_AP_FOUND"
 
-	return status
+	return "UNKNOWN"
+
+def is_wifi_connected():
+	return get_wifi_status() == "GOT_IP"
 
 def print_ifconfig(data):
 	log("INFO", f"  ip address = {data[0]}")

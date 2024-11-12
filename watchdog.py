@@ -3,6 +3,7 @@ import machine
 import esp32
 import uasyncio as asyncio
 from logger import scope
+import time
 
 log = scope("watchdog")
 
@@ -16,7 +17,8 @@ async def watchdog_loop():
 			log("INFO", f"Collected and cleaned {cleaned} dangling objects")
 
 		temp = (esp32.raw_temperature() - 32.0) / 1.8
-		log("DEBG", "CPU: freq {}, temp {:5.1f}C".format(machine.freq(), temp))
+		log("DEBG", "TIME: {}".format(time.time_ns()))
+		log("DEBG", " CPU: freq {}, temp {:5.1f}C".format(machine.freq(), temp))
 		await asyncio.sleep(10)
 
 def start_watchdog():
