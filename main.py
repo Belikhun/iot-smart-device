@@ -6,6 +6,8 @@ from logger import scope
 from config import config
 from utils import hw_id, status_led, status_buzz
 from components import PushButton
+from client import ws_connect, ws_start_loop
+from watchdog import start_watchdog
 
 log = scope("main")
 
@@ -39,18 +41,34 @@ async def initialized():
 	button = PushButton(25)
 	button.set_on_press(lambda: log("INFO", "button 1 pressed"))
 	button.start_listen()
+	await init_ws_server()
+
+async def init_ws_server():
+	if not config("server"):
+		log("INFO", "Websocket server haven't been configured. Configuration is required in portal.")
+		return
+
+	server_addr = "ws://{}/ws/device".format(config("server"))
+
+	if not await ws_connect(server_addr):
+		log("INFO", "Websocket server is not reachable. Re-configuration is required in portal.")
+		configure()
+		return
+
+	stop_access_point()
+	ws_start_loop()
 
 # Run the main loop
 try:
 	log("INFO", "Starting main program loop...")
 
+	start_watchdog()
 	asyncio.create_task(main())
 	loop = asyncio.get_event_loop()
 	loop.run_forever()
 except KeyboardInterrupt:
 	log("WARN", "Program loop stopped by user. Running clean up...")
 	stop_wifi()
-	stop_access_point()
 	stop_server()
 	stop_access_point()
 	status_led().off()
