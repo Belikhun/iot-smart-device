@@ -53,16 +53,36 @@ def feature_handle_ws_data(recv_data: dict):
 	target = recv_data.get("target")
 	data = recv_data.get("data")
 	timestamp = recv_data.get("timestamp")
-	log("INFO", f"RCV[{target}@{timestamp}]: {command}")
+	log("INFO", f"RCV[@{timestamp}]: {command} -> {target}")
 
 	if (command == "update"):
-		feature = get_feature(target)
+		id = data.get("id")
+		uuid = data.get("uuid")
+		value = data.get("value")
+		log("INFO", f"Updating {id} [{uuid}] value from server...")
+
+		feature = get_feature(uuid)
 
 		if not feature:
-			log("WARN", f"No feature found with ID {target}")
+			log("WARN", f"No feature found with UUID {uuid}, will skip updating this item")
+			return
 
-		feature.set_value(data, update_source=FeatureUpdateSource.SERVER)
+		feature.set_value(value, update_source=FeatureUpdateSource.SERVER)
 	elif (command == "features"):
 		ws_do_send("features", get_features_data())
+	elif (command == "sync"):
+		for item in data:
+			id = item.get("id")
+			uuid = item.get("uuid")
+			value = item.get("value")
+			log("INFO", f"Syncing {id} [{uuid}] value from server...")
+
+			feature = get_feature(uuid)
+
+			if not feature:
+				log("WARN", f"No feature found with UUID {uuid}, will skip syncing this item")
+				continue
+
+			feature.set_value(value, update_source=FeatureUpdateSource.SERVER)
 
 ws_on_data(feature_handle_ws_data)
