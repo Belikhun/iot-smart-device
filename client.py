@@ -29,7 +29,7 @@ async def ws_connect(url, reconnect=False):
 		status_led().stop_animation()
 		await asyncio.sleep_ms(50)
 		status_led().set_color((0, 0, 255))
-		status_buzz().stop_tone()
+		status_buzz().stop_tone(stop_task=True)
 
 		if ws_is_connected():
 			log("INFO", f"Stopping current websocket connection...")

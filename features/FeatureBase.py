@@ -25,7 +25,7 @@ class FeatureBase:
 		return self.get_value()
 
 	def set_value(self, new_value, update_source=FeatureUpdateSource.INTERNAL):
-		self.current_value = new_value
+		self.current_value = self.process_value(new_value)
 		self.log("INFO", f"value={str(new_value)} src={update_source}")
 
 		if (self.update_handler):
@@ -38,6 +38,9 @@ class FeatureBase:
 		if (update_source != FeatureUpdateSource.SERVER):
 			self.log("DEBG", "Will push value to server")
 			self.do_push_value()
+
+	def process_value(self, new_value):
+		return new_value
 
 	def get_value(self):
 		return self.current_value
