@@ -19,7 +19,7 @@ def register_feature(feature: FeatureBase):
 
 def push_feature_value(feature: FeatureBase):
 	value = feature.get_value()
-	log("INFO", f"[{feature.id}]: PUSH {str(value)}")
+	log("INFO", f"[{feature.id}] PUSH {str(value)}")
 	ws_do_send("update", feature.get_update_data(), feature.uuid)
 
 def get_features_data():
@@ -54,7 +54,7 @@ def feature_handle_ws_data(recv_data: dict):
 	target = recv_data.get("target")
 	data = recv_data.get("data")
 	timestamp = recv_data.get("timestamp")
-	log("INFO", f"RCV[@{timestamp}]: {command} -> {target}")
+	log("INFO", f"RCV[@{timestamp}] {command} -> {target}")
 	ws_heartbeat()
 
 	if (command == "update"):
