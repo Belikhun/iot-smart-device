@@ -1,6 +1,8 @@
 import os
 import machine
 from components import RGBLed, Buzzer
+from logger import log
+import client
 
 HARDWARE_ID = None
 
@@ -64,3 +66,10 @@ def uri_decode(s):
 			decoded += s[i]
 			i += 1
 	return decoded
+
+async def reset_device():
+	log("WARN", "RESETTING DEVICE...")
+	log("WARN", "RESETTING DEVICE...")
+	log("WARN", "RESETTING DEVICE...")
+	await client.ws_stop_loop()
+	machine.reset()
