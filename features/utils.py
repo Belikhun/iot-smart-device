@@ -1,9 +1,7 @@
-import uasyncio as asyncio
 from logger import scope
 from client import ws_do_send, ws_on_data
 from features import FeatureBase
 from watchdog import ws_heartbeat
-from utils import reset_device
 
 log = scope("features")
 FEATURES_DICT: dict[str, FeatureBase] = {}
@@ -72,8 +70,10 @@ def feature_handle_ws_data(recv_data: dict):
 			return
 
 		feature.set_value(value, update_source=FeatureUpdateSource.SERVER)
+		return True
 	elif (command == "features"):
 		ws_do_send("features", get_features_data())
+		return True
 	elif (command == "sync"):
 		for item in data:
 			id = item.get("id")
@@ -88,10 +88,13 @@ def feature_handle_ws_data(recv_data: dict):
 				continue
 
 			feature.set_value(value, update_source=FeatureUpdateSource.SERVER)
+
+		return True
 	elif (command == "heartbeat"):
 		# Send heartbeat ACK
 		ws_do_send("heartbeat")
-	elif (command == "reset"):
-		asyncio.create_task(reset_device())
+		return True
+
+	return False
 
 ws_on_data(feature_handle_ws_data)

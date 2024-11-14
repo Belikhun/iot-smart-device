@@ -5,9 +5,10 @@ import uasyncio as asyncio
 from logger import scope
 from config import config, set_config
 from utils import hw_id, status_led, status_buzz, uuidv4
-from client import ws_connect, ws_start_loop, get_ws, ws_on_connected, ws_do_send
+from client import ws_connect, ws_start_loop, ws_stop_loop, get_ws, ws_on_connected, ws_do_send, ws_on_data
 from watchdog import start_watchdog
 from device import init_features
+import machine
 
 log = scope("main")
 MAIN_INITIALIZED = False
@@ -17,6 +18,25 @@ log("INFO", f"Hardware Id: {hw_id()}")
 
 start_access_point()
 start_wifi()
+
+async def reset_device():
+	log("WARN", ">>> RESETTING DEVICE...")
+	log("WARN", ">>> RESETTING DEVICE...")
+	log("WARN", ">>> RESETTING DEVICE...")
+	await ws_stop_loop()
+	stop_wifi()
+	stop_server()
+	stop_access_point()
+	status_led().off()
+	machine.reset()
+
+def handle_ws_data(recv_data: dict):
+	command = recv_data.get("command")
+
+	if command == "reset":
+		asyncio.create_task(reset_device)
+
+ws_on_data(handle_ws_data)
 
 def configure():
 	global CONFIGURE_STARTED
