@@ -87,5 +87,7 @@ def feature_handle_ws_data(recv_data: dict):
 			feature.set_value(value, update_source=FeatureUpdateSource.SERVER)
 	elif (command == "heartbeat"):
 		ws_heartbeat()
+		# Send heartbeat ACK
+		ws_do_send("heartbeat")
 
 ws_on_data(feature_handle_ws_data)
