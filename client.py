@@ -34,7 +34,7 @@ async def ws_connect(url, reconnect=False):
 
 		if ws_is_connected():
 			log("INFO", f"Stopping current websocket connection...")
-			ws_stop_loop()
+			await ws_stop_loop()
 			await WS_CLIENT.open(False)
 
 		log("INFO", f"Handshaking to {url}")
@@ -85,11 +85,11 @@ async def ws_loop():
 		status_buzz().do_beep(duration=0.2, frequency=820)
 		ws_do_reconnect()
 
-def ws_start_loop():
+async def ws_start_loop():
 	global WS_TASK, WS_CONNECTED_HANDLER
 
 	if WS_TASK:
-		ws_stop_loop()
+		await ws_stop_loop()
 
 	log("INFO", "Starting websocket loop task")
 	WS_TASK = asyncio.create_task(ws_loop())
@@ -99,13 +99,14 @@ def ws_start_loop():
 	if WS_CONNECTED_HANDLER:
 		WS_CONNECTED_HANDLER()
 
-def ws_stop_loop():
-	global WS_TASK
+async def ws_stop_loop():
+	global WS_TASK, WS_CLIENT
 
 	if WS_TASK:
 		log("INFO", "Stopping websocket loop task")
 		WS_TASK.cancel()
 		WS_TASK = None
+		await WS_CLIENT.close()
 		watchdog.stop_monitor_ws()
 
 async def ws_reconnect(delay=2):
@@ -115,7 +116,7 @@ async def ws_reconnect(delay=2):
 	await asyncio.sleep(delay)
 
 	if await ws_connect(WS_URL, reconnect=True):
-		ws_start_loop()
+		await ws_start_loop()
 
 def ws_do_reconnect(delay=2):
 	asyncio.create_task(ws_reconnect(delay))

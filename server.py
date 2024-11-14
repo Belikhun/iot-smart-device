@@ -167,7 +167,7 @@ async def server_status(reader, writer, request: HTTPRequest):
 
 	if (connected):
 		set_config("server", server, save=True)
-		ws_start_loop()
+		await ws_start_loop()
 
 	response_data = { "connected": connected }
 	response_body = json.dumps(response_data).encode("utf-8")

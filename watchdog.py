@@ -4,6 +4,7 @@ import esp32
 import uasyncio as asyncio
 from logger import scope
 import time
+import client
 
 log = scope("watchdog")
 MONITOR_WS = False
@@ -13,6 +14,7 @@ async def watchdog_loop():
 	gc.enable()
 
 	while True:
+		global MONITOR_WS, LAST_WS_HEARTBEAT
 		cleaned = gc.collect()
 
 		if cleaned:
@@ -22,6 +24,15 @@ async def watchdog_loop():
 		temp = (esp32.raw_temperature() - 32.0) / 1.8
 		log("DEBG", "TIME: {}".format(timestamp))
 		log("DEBG", " CPU: freq {}, temp {:5.1f}C".format(machine.freq(), temp))
+
+		if (MONITOR_WS):
+			heartbeat = timestamp - LAST_WS_HEARTBEAT
+			log("DEBG", "  WS: d_heartbeat={}".format(heartbeat))
+
+			if (heartbeat > 10000):
+				log("WARN", "Websocket lost heartbeat for more than 10 seconds, will disconnect now")
+				await client.ws_stop_loop()
+
 		await asyncio.sleep(10)
 
 def start_watchdog():

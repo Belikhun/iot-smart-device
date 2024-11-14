@@ -111,7 +111,7 @@ async def init_ws_server():
 		return
 
 	stop_access_point()
-	ws_start_loop()
+	await ws_start_loop()
 
 	log("OKAY", "Device initialized")
 
