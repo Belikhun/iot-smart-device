@@ -34,7 +34,7 @@ def handle_ws_data(recv_data: dict):
 	command = recv_data.get("command")
 
 	if command == "reset":
-		asyncio.create_task(reset_device)
+		asyncio.create_task(reset_device())
 
 ws_on_data(handle_ws_data)
 
