@@ -80,7 +80,6 @@ async def main():
 
 async def initialized():
 	global MAIN_INITIALIZED
-	await asyncio.sleep_ms(500)
 
 	if not MAIN_INITIALIZED:
 		start_server()
@@ -88,6 +87,7 @@ async def initialized():
 		log("INFO", "Initializing board components and features...")
 		init_features()
 
+	await asyncio.sleep_ms(500)
 	await init_ws_server()
 	MAIN_INITIALIZED = True
 

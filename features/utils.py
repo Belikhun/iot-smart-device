@@ -1,6 +1,7 @@
 from logger import scope
 from client import ws_do_send, ws_on_data
 from features import FeatureBase
+from watchdog import ws_heartbeat
 
 log = scope("features")
 FEATURES_DICT: dict[str, FeatureBase] = {}
@@ -84,5 +85,7 @@ def feature_handle_ws_data(recv_data: dict):
 				continue
 
 			feature.set_value(value, update_source=FeatureUpdateSource.SERVER)
+	elif (command == "heartbeat"):
+		ws_heartbeat()
 
 ws_on_data(feature_handle_ws_data)

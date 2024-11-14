@@ -9,6 +9,7 @@ class Buzzer:
 		self.buzzer.deinit()
 		self.is_playing = False
 		self.task = None
+		self.lock = asyncio.Lock()
 
 	def play_tone(self, frequency=None):
 		if frequency:
@@ -25,9 +26,11 @@ class Buzzer:
 			self.task.cancel()
 
 	async def beep(self, duration=0.2, frequency=None):
+		await self.lock.acquire()
 		self.play_tone(frequency)
 		await asyncio.sleep(duration)
 		self.stop_tone()
+		self.lock.release()
 
 	def do_beep(self, duration=0.2, frequency=None):
 		if self.task:

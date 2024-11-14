@@ -2,6 +2,7 @@ from wsc import WebsocketClient
 from logger import scope
 from utils import status_led, status_buzz
 import uasyncio as asyncio
+import watchdog
 import time
 import json
 
@@ -37,7 +38,7 @@ async def ws_connect(url, reconnect=False):
 			await WS_CLIENT.open(False)
 
 		log("INFO", f"Handshaking to {url}")
-		await asyncio.sleep_ms(500)
+		await status_buzz().beep(duration=0.1, frequency=726)
 
 		if not await WS_CLIENT.handshake(url):
 			log("WARN", "Handshake to server failed")
@@ -93,6 +94,7 @@ def ws_start_loop():
 	log("INFO", "Starting websocket loop task")
 	WS_TASK = asyncio.create_task(ws_loop())
 	status_buzz().do_play_melody([523, 659, 784, 1042, 0], 0.15)
+	watchdog.start_monitor_ws()
 
 	if WS_CONNECTED_HANDLER:
 		WS_CONNECTED_HANDLER()
@@ -103,7 +105,8 @@ def ws_stop_loop():
 	if WS_TASK:
 		log("INFO", "Stopping websocket loop task")
 		WS_TASK.cancel()
-		WS_TASK = None	
+		WS_TASK = None
+		watchdog.stop_monitor_ws()
 
 async def ws_reconnect(delay=2):
 	global WS_URL
