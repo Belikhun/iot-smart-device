@@ -55,6 +55,7 @@ def feature_handle_ws_data(recv_data: dict):
 	data = recv_data.get("data")
 	timestamp = recv_data.get("timestamp")
 	log("INFO", f"RCV[@{timestamp}]: {command} -> {target}")
+	ws_heartbeat()
 
 	if (command == "update"):
 		id = data.get("id")
@@ -86,7 +87,6 @@ def feature_handle_ws_data(recv_data: dict):
 
 			feature.set_value(value, update_source=FeatureUpdateSource.SERVER)
 	elif (command == "heartbeat"):
-		ws_heartbeat()
 		# Send heartbeat ACK
 		ws_do_send("heartbeat")
 
