@@ -30,8 +30,9 @@ async def watchdog_loop():
 			log("DEBG", "  WS: d_heartbeat={}".format(heartbeat))
 
 			if (heartbeat > 10000):
-				log("WARN", "Websocket lost heartbeat for more than 10 seconds, will disconnect now")
+				log("WARN", "Websocket lost heartbeat for more than 10 seconds, will attempt to reconnect now")
 				await client.ws_stop_loop()
+				client.ws_do_reconnect()
 
 		await asyncio.sleep(10)
 
