@@ -1,4 +1,5 @@
 from features import FeatureButton, FeatureKnob, FeatureTemperature, FeatureHumidity
+from features.utils import FeatureUpdateSource
 import uasyncio as asyncio
 import machine
 import dht
@@ -45,10 +46,10 @@ def register_features():
 			current_humid = sensor.humidity()
 
 			if (abs(temperature.get_value() - current_temp) > 0.01):
-				temperature.set_value(current_temp)
+				temperature.set_value(current_temp, update_source=FeatureUpdateSource.HARDWARE)
 
 			if (abs(humidity.get_value() - current_humid) > 0.01):
-				humidity.set_value(current_humid)
+				humidity.set_value(current_humid, update_source=FeatureUpdateSource.HARDWARE)
 
 			await asyncio.sleep(1)
 	
