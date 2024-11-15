@@ -59,24 +59,32 @@ def register_features():
 	smoke = FeatureSensorValue(
 		id="smoke",
 		name="Smoke Concentration",
+		max=200,
+		dangerous=100,
 		unit="ppm"
 	)
 
 	lpg = FeatureSensorValue(
 		id="lpg",
 		name="LPG Concentration",
+		max=3000,
+		dangerous=2000,
 		unit="ppm"
 	)
 
 	methane = FeatureSensorValue(
 		id="methane",
 		name="Methane Concentration",
+		max=6000,
+		dangerous=5000,
 		unit="ppm"
 	)
 
 	hydrogen = FeatureSensorValue(
 		id="hydrogen",
 		name="Hydrogen Concentration",
+		max=5000,
+		dangerous=4000,
 		unit="ppm"
 	)
 
