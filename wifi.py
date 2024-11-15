@@ -121,7 +121,7 @@ async def connect_wifi(ssid: str = None, password: str = None):
 	print_ifconfig(WIFI_STA.ifconfig())
 
 	statled.start_animation("blink", color=(0, 255, 0), duration=1)
-	await status_buzz().beep(duration=0.2, frequency=1120)
+	status_buzz().do_beep(duration=0.2, frequency=1120)
 
 	set_config("ssid", ssid)
 	set_config("password", password)

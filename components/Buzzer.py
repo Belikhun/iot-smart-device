@@ -18,6 +18,9 @@ class Buzzer:
 		if frequency:
 			self.frequency = frequency
 
+		if (self.is_playing):
+			self.stop_tone()
+
 		self.buzzer.init(freq=self.frequency, duty=512)
 		self.is_playing = True
 
@@ -34,6 +37,7 @@ class Buzzer:
 		await self.lock.acquire()
 		self.play_tone(frequency)
 		await asyncio.sleep(duration)
+		self.buzzer.freq(1)
 		self.stop_tone()
 		self.lock.release()
 

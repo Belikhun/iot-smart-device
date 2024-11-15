@@ -104,9 +104,6 @@ async def initialized():
 	if not MAIN_INITIALIZED:
 		start_server()
 
-		log("INFO", "Initializing board components and features...")
-		init_features()
-
 	await asyncio.sleep_ms(500)
 	await init_ws_server()
 	MAIN_INITIALIZED = True
@@ -136,6 +133,8 @@ async def init_ws_server():
 	log("OKAY", "Device initialized")
 
 def handle_ws_connected():
+	init_features()
+
 	token = config("token")
 
 	if not token:

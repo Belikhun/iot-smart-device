@@ -19,6 +19,10 @@ def get_ws():
 
 def ws_is_connected():
 	global WS_CLIENT
+
+	if not WS_CLIENT:
+		return False
+
 	return WS_CLIENT.is_open()
 
 async def ws_connect(url, reconnect=False):
@@ -53,6 +57,7 @@ async def ws_connect(url, reconnect=False):
 		log("OKAY", "Handshake successfully")
 		status_led().start_animation("blink", (0, 255, 0))
 		return True
+
 	except Exception as e:
 		log("WARN", f"Handshake failed with error: {e}")
 		status_led().start_animation("breathe", color=(0, 255, 0))
@@ -73,7 +78,9 @@ async def ws_loop():
 			data = await WS_CLIENT.recv()
 
 			if data is not None:
+				await lock.acquire()
 				ws_handle_data(data)
+				lock.release()
 
 			await asyncio.sleep_ms(50)
 	except Exception as e:

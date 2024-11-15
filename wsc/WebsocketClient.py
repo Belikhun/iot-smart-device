@@ -102,18 +102,14 @@ class WebsocketClient:
 
 	async def handshake(self, uri, headers=[]):
 		if self.sock:
-			self.close()
+			await self.close()
 
 		self.sock = socket.socket()
 		self.uri = self.urlparse(uri)
-		ai = socket.getaddrinfo(self.uri.hostname, self.uri.port)
-		addr = ai[0][4]
-		self.sock.setblocking(False)
-		self.sock.connect(addr)
-		# if self.uri.protocol == 'wss':
-		# 	self.sock = ussl.wrap_socket(self.sock, server_hostname=self.uri.hostname)
+		addr = socket.getaddrinfo(self.uri.hostname, self.uri.port)
 
-		await self.open(False)
+		self.sock.connect(addr[0][4])
+		self.sock.setblocking(False)
 
 		def send_header(header, *args):
 			self.sock.write(header % args + '\r\n')

@@ -199,6 +199,14 @@ async def android_portal_check(reader, writer, request: HTTPRequest):
 
 	await response.send(writer)
 
+@server.route("GET", "/gen_204")
+async def android_portal_check(reader, writer, request: HTTPRequest):
+	response = HTTPResponse(301, "text/html", True, {
+		"Location": "http://device.local/"
+	})
+
+	await response.send(writer)
+
 @server.route("GET", "/hotspot-detect.html")
 async def ios_portal_check(reader, writer, request: HTTPRequest):
 	response = HTTPResponse(302, "text/html", True, {
