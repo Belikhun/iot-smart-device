@@ -83,7 +83,7 @@ def register_features():
 	async def update_mq2():
 		log = scope("mq2")
 
-		sensor = MQ2(pinData=32, baseVoltage=5, measuringStrategy=MQ2.STRATEGY_FAST)
+		sensor = MQ2(pinData=35, baseVoltage=5, measuringStrategy=MQ2.STRATEGY_FAST)
 		await sensor.calibrate()
 
 		log("INFO", f"Calibration completed. Base resistance: {sensor._ro}")

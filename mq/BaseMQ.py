@@ -80,6 +80,10 @@ class BaseMQ(object):
 		self._heater = False
 
 	def __calculateResistance__(self, rawAdc):
+		log("DEBG", f"RS raw_adc={rawAdc}")
+		if rawAdc == 0:
+			rawAdc = 1
+
 		vrl = rawAdc * (self._baseVoltage / 1023)
 		rsAir = (self._baseVoltage - vrl) / vrl * self._boardResistance
 		return rsAir
