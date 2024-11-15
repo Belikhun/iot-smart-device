@@ -59,8 +59,8 @@ def register_features():
 	smoke = FeatureSensorValue(
 		id="smoke",
 		name="Smoke Concentration",
-		max=1500,
-		dangerous=1000,
+		max=800,
+		dangerous=600,
 		unit="ppm"
 	)
 
