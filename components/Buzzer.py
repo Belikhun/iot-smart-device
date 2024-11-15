@@ -1,5 +1,8 @@
 import machine
 import uasyncio as asyncio
+from logger import scope
+
+log = scope("buzzer")
 
 class Buzzer:
 	def __init__(self, pin: int, frequency=1000):
@@ -19,6 +22,7 @@ class Buzzer:
 		self.is_playing = True
 
 	def stop_tone(self, stop_task=False):
+		log("DEBG", "STOP")
 		self.buzzer.deinit()
 		self.is_playing = False
 
@@ -26,6 +30,7 @@ class Buzzer:
 			self.task.cancel()
 
 	async def beep(self, duration=0.2, frequency=None):
+		log("DEBG", f"BEEP duration={duration} freq={frequency}")
 		await self.lock.acquire()
 		self.play_tone(frequency)
 		await asyncio.sleep(duration)
@@ -40,6 +45,8 @@ class Buzzer:
 		self.task = asyncio.create_task(self.beep(duration, frequency))
 
 	async def play_melody(self, notes, tempo=0.5):
+		log("DEBG", f"PLAY tempo={tempo}")
+
 		for note in notes:
 			if note > 0:
 				self.play_tone(note)

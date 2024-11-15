@@ -1,15 +1,21 @@
 from utils import hw_id
 from logger import scope
 from features.utils import FeatureUpdateSource, register_feature, push_feature_value
+from micropython import const
 
 class FeatureBase:
-	def __init__(self, id: str, name: str):
+	FLAG_READ = const(1)
+
+	FLAG_WRITE = const(2)
+
+	def __init__(self, id: str, name: str, flags: int = FLAG_READ | FLAG_WRITE):
 		self.id = id
 		self.uuid = f"{hw_id()}/{id}"
 		self.name = name
 		self.current_value = None
 		self.update_handler = None
 		self.component = None
+		self.flags = flags
 		self.log = scope(f"feature:{self.id}")
 		self.init()
 
@@ -53,6 +59,15 @@ class FeatureBase:
 
 	def do_push_value(self):
 		push_feature_value(self)
+
+	def get_describe_data(self):
+		return {
+			"id": self.id,
+			"uuid": self.uuid,
+			"name": self.name,
+			"kind": self.__class__.__name__,
+			"flags": self.flags
+		}
 
 	def get_update_data(self):
 		return {

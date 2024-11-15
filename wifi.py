@@ -77,9 +77,11 @@ async def connect_wifi(ssid: str = None, password: str = None):
 
 	log("INFO", f"Trying to connect to wifi [{ssid}] (password={password})...")
 	statled.start_animation("blink", color=(0, 0, 255), duration=0.1)
+	await asyncio.sleep(1)
 
 	if (WIFI_STA.isconnected()):
 		await disconnect_wifi()
+		await asyncio.sleep(1)
 
 	if password:
 		WIFI_STA.connect(ssid, password)
@@ -119,7 +121,7 @@ async def connect_wifi(ssid: str = None, password: str = None):
 	print_ifconfig(WIFI_STA.ifconfig())
 
 	statled.start_animation("blink", color=(0, 255, 0), duration=1)
-	status_buzz().do_beep(duration=0.2, frequency=1120)
+	await status_buzz().beep(duration=0.2, frequency=1120)
 
 	set_config("ssid", ssid)
 	set_config("password", password)

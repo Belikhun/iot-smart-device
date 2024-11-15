@@ -108,11 +108,12 @@ class WebsocketClient:
 		self.uri = self.urlparse(uri)
 		ai = socket.getaddrinfo(self.uri.hostname, self.uri.port)
 		addr = ai[0][4]
-		self.sock.connect(addr)
 		self.sock.setblocking(False)
+		self.sock.connect(addr)
 		# if self.uri.protocol == 'wss':
 		# 	self.sock = ussl.wrap_socket(self.sock, server_hostname=self.uri.hostname)
-		# await self.open(False)
+
+		await self.open(False)
 
 		def send_header(header, *args):
 			self.sock.write(header % args + '\r\n')

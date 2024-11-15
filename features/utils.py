@@ -31,14 +31,7 @@ def get_features_data():
 	FEATURES_DATA = []
 
 	for feature in FEATURES_DICT.values():
-		data = {
-			"id": feature.id,
-			"uuid": feature.uuid,
-			"name": feature.name,
-			"kind": feature.__class__.__name__
-		}
-
-		FEATURES_DATA.append(data)
+		FEATURES_DATA.append(feature.get_describe_data())
 
 	return FEATURES_DATA
 
