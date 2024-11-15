@@ -1,5 +1,5 @@
 from logger import scope
-from client import ws_do_send, ws_on_data
+from client import ws_do_send, ws_on_data, ws_is_connected
 from features import FeatureBase
 from watchdog import ws_heartbeat
 
@@ -18,6 +18,10 @@ def register_feature(feature: FeatureBase):
 	FEATURES_DICT[feature.uuid] = feature
 
 def push_feature_value(feature: FeatureBase):
+	if not ws_is_connected():
+		log("WARN", "Will not push value because WS is not connected")
+		return
+
 	value = feature.get_value()
 	log("INFO", f"[{feature.id}] PUSH {str(value)}")
 	ws_do_send("update", feature.get_update_data(), feature.uuid)
@@ -41,6 +45,7 @@ def get_feature(uuid: str) -> FeatureBase | None:
 
 def feature_handle_ws_data(recv_data: dict):
 	if not recv_data.get("command") or not recv_data.get("target") or not recv_data.get("timestamp"):
+		print("not valid")
 		raise ValueError("Not a valid packet")
 
 	command = recv_data.get("command")
@@ -89,5 +94,3 @@ def feature_handle_ws_data(recv_data: dict):
 		return True
 
 	return False
-
-ws_on_data(feature_handle_ws_data)

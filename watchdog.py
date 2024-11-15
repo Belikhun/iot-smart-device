@@ -24,7 +24,7 @@ async def watchdog_loop():
 			timestamp = int(time.time_ns() / 1000000)
 			temp = (esp32.raw_temperature() - 32.0) / 1.8
 			log("DEBG", "TIME: {}".format(timestamp))
-			log("DEBG", " CPU: freq {}, temp {:5.1f}C".format(machine.freq(), temp))
+			log("DEBG", " CPU: temp {:5.1f}C".format(temp))
 
 			if (MONITOR_WS):
 				heartbeat = timestamp - LAST_WS_HEARTBEAT

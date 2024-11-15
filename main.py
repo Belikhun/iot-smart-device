@@ -4,10 +4,10 @@ from dns import do_start_dns_server
 import uasyncio as asyncio
 from logger import scope
 from config import config, set_config
-from utils import hw_id, status_led, status_buzz, uuidv4
 from client import ws_connect, ws_start_loop, ws_stop_loop, get_ws, ws_on_connected, ws_do_send, ws_on_data
 from watchdog import start_watchdog
 from device import init_features
+from utils import hw_id, status_led, status_buzz, uuidv4
 import machine
 
 log = scope("main")
@@ -35,6 +35,9 @@ def handle_ws_data(recv_data: dict):
 
 	if command == "reset":
 		asyncio.create_task(reset_device())
+		return True
+
+	return False
 
 ws_on_data(handle_ws_data)
 

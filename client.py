@@ -19,14 +19,10 @@ def get_ws():
 
 def ws_is_connected():
 	global WS_CLIENT
-
-	if not WS_CLIENT:
-		return False
-
 	return WS_CLIENT.is_open()
 
 async def ws_connect(url, reconnect=False):
-	global WS_CLIENT, WS_URL
+	global WS_CLIENT, WS_URL, WS_TASK
 
 	WS_URL = url
 
@@ -38,8 +34,10 @@ async def ws_connect(url, reconnect=False):
 
 		if ws_is_connected():
 			log("INFO", f"Stopping current websocket connection...")
-			await ws_stop_loop()
 			await WS_CLIENT.open(False)
+
+		if WS_TASK:
+			await ws_stop_loop()
 
 		log("INFO", f"Handshaking to {url}")
 		await status_buzz().beep(duration=0.1, frequency=726)
@@ -53,6 +51,24 @@ async def ws_connect(url, reconnect=False):
 				ws_do_reconnect()
 
 			return False
+
+		tries = 0
+
+		while not await WS_CLIENT.open():
+			tries += 1
+
+			if (tries > 10):
+				log("WARN", "Handshake to server failed")
+				status_led().start_animation("breathe", color=(0, 0, 255))
+				status_buzz().do_beep(duration=0.2, frequency=820)
+
+				if reconnect:
+					ws_do_reconnect()
+
+				return False
+
+			log("INFO", f"Waiting until socket is fully connected... ({tries}/10)")
+			await asyncio.sleep(1)
 
 		log("OKAY", "Handshake successfully")
 		status_led().start_animation("blink", (0, 255, 0))
@@ -98,13 +114,17 @@ async def ws_start_loop():
 	if WS_TASK:
 		await ws_stop_loop()
 
-	log("INFO", "Starting websocket loop task")
+	log("INFO", "Starting websocket loop task...")
+	status_led().set_color((0, 255, 0))
 	WS_TASK = asyncio.create_task(ws_loop())
-	status_buzz().do_play_melody([523, 659, 784, 1042, 0], 0.15)
 	watchdog.start_monitor_ws()
+	await asyncio.sleep(1)
 
+	log("INFO", "Executing websocket connected handler...")
 	if WS_CONNECTED_HANDLER:
 		WS_CONNECTED_HANDLER()
+
+	status_buzz().do_play_melody([523, 659, 784, 1042, 0], 0.15)
 
 async def ws_stop_loop():
 	global WS_TASK, WS_CLIENT
@@ -156,7 +176,7 @@ def ws_on_data(callable: callable):
 
 def ws_on_connected(callable: callable):
 	global WS_CONNECTED_HANDLER
-	log("INFO", "Websocket websocket connected handler registered")
+	log("INFO", "Websocket connected handler registered")
 	WS_CONNECTED_HANDLER = callable
 
 def ws_handle_data(recv_data: str):
