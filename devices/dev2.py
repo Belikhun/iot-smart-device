@@ -91,29 +91,42 @@ def register_features():
 	async def update_mq2():
 		log = scope("mq2")
 
-		sensor = MQ2(pinData=35, baseVoltage=5, measuringStrategy=MQ2.STRATEGY_FAST)
+		sensor = MQ2(pinData=35, baseVoltage=5, measuringStrategy=MQ2.STRATEGY_MID)
+
+		sensor.heaterPwrHigh()
+		log("INFO", "Heating sensor, this process will take a minute...")
+		smoke.set_value(0)
+		lpg.set_value(0)
+		methane.set_value(0)
+		hydrogen.set_value(0)
+
+		while not sensor.heatingCompleted():
+			await asyncio.sleep(1)
+
 		await sensor.calibrate()
 
 		log("INFO", f"Calibration completed. Base resistance: {sensor._ro}")
 
 		while True:
 			try:
-				smoke_value = await sensor.readSmoke()
+				values = await sensor.readAll()
+
+				smoke_value = values[2]
 				log("DEBG", f"Smoke: {smoke_value} ppm")
 				smoke.set_value(smoke_value)
 
-				lpg_value = await sensor.readLPG()
+				lpg_value = values[0]
 				log("DEBG", f"LPG: {lpg_value} ppm")
 				lpg.set_value(lpg_value)
 
-				methane_value = await sensor.readMethane()
+				methane_value = values[1]
 				log("DEBG", f"Methane: {methane_value} ppm")
 				methane.set_value(methane_value)
 
-				hydrogen_value = await sensor.readHydrogen()
+				hydrogen_value = values[3]
 				log("DEBG", f"Hydrogen: {hydrogen_value} ppm")
 				hydrogen.set_value(hydrogen_value)
-				await asyncio.sleep(2)
+
 			except Exception as e:
 				log("WARN", f"Read values from MQ-2 sensor failed: {e}")
 				await asyncio.sleep(2)

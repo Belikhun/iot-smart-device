@@ -10,7 +10,7 @@ log = scope("mq")
 class BaseMQ(object):
 	MQ_SAMPLE_TIMES = const(5)
 
-	MQ_SAMPLE_INTERVAL = const(2000)
+	MQ_SAMPLE_INTERVAL = const(1000)
 
 	MQ_HEATING_PERIOD = const(60000)
 
@@ -19,6 +19,8 @@ class BaseMQ(object):
 	STRATEGY_FAST = const(1)
 
 	STRATEGY_ACCURATE = const(2)
+
+	STRATEGY_MID = const(3)
 
 	def __init__(self, pinData, pinHeater=-1, boardResistance = 10, baseVoltage = 5.0, measuringStrategy = STRATEGY_ACCURATE):
 		self._heater = False
@@ -89,17 +91,19 @@ class BaseMQ(object):
 		return rsAir
 
 	async def __readRs__(self):
-		if self.measuringStrategy == BaseMQ.STRATEGY_ACCURATE :            
-				rs = 0
-				for _ in range(0, BaseMQ.MQ_SAMPLE_TIMES + 1): 
-					rs += self.__calculateResistance__(self.pinData.read())
-					await asyncio.sleep_ms(BaseMQ.MQ_SAMPLE_INTERVAL)
+		if self.measuringStrategy == BaseMQ.STRATEGY_ACCURATE or self.measuringStrategy == BaseMQ.STRATEGY_MID:
+			rs = 0
+			times = 3 if self.measuringStrategy == BaseMQ.STRATEGY_MID else BaseMQ.MQ_SAMPLE_TIMES + 1
 
-				rs = rs / BaseMQ.MQ_SAMPLE_TIMES
-				self._rsCache = rs
-				self.dataIsReliable = True
-				self._lastMesurement = utime.ticks_ms()                            
-				pass
+			for _ in range(0, times):
+				rs += self.__calculateResistance__(self.pinData.read())
+				await asyncio.sleep_ms(BaseMQ.MQ_SAMPLE_INTERVAL)
+
+			rs = rs / BaseMQ.MQ_SAMPLE_TIMES
+			self._rsCache = rs
+			self.dataIsReliable = True
+			self._lastMesurement = utime.ticks_ms()
+			pass
 		else:
 			rs = self.__calculateResistance__(self.pinData.read())
 			self.dataIsReliable = False
