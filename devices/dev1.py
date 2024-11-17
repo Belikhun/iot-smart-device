@@ -4,9 +4,9 @@ def register_features():
 	FeatureRGBLed(
 		id="rgb1",
 		name="RGB Led",
-		red_pin=14,
-		green_pin=32,
-		blue_pin=33
+		red_pin=32,
+		green_pin=33,
+		blue_pin=14
 	)
 
 	FeatureOnOffPin(
