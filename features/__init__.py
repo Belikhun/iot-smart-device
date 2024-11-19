@@ -1,7 +1,8 @@
 
 from .FeatureBase import FeatureBase
 from .FeatureRGBLed import FeatureRGBLed
-from .FeatureOnOffPin import FeatureOnOffPin
+from .FeatureOnOffToggle import FeatureOnOffToggle
+from .FeatureOnOffSensor import FeatureOnOffSensor
 from .FeatureButton import FeatureButton
 from .FeatureKnob import FeatureKnob
 from .FeatureTemperature import FeatureTemperature

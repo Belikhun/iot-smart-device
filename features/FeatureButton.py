@@ -7,7 +7,6 @@ class FeatureButton(FeatureBase):
 		super(FeatureButton, self).__init__(id, name)
 		self.component = PushButton(pin)
 		self.component.set_on_release(self.handle_button)
-		self.component.start_listen()
 		self.current_value = default
 
 	def handle_button(self):

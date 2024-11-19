@@ -43,6 +43,10 @@ def get_feature(uuid: str) -> FeatureBase | None:
 	global FEATURES_DICT
 	return FEATURES_DICT.get(uuid)
 
+def get_features() -> dict[str, FeatureBase]:
+	global FEATURES_DICT
+	return FEATURES_DICT
+
 def feature_handle_ws_data(recv_data: dict):
 	if not recv_data.get("command") or not recv_data.get("target") or not recv_data.get("timestamp"):
 		print("not valid")

@@ -1,6 +1,6 @@
 from machine import Pin
 
-class OnOffPin:
+class OnOffToggle:
 	def __init__(self, pin: int, flip: bool = False, default: bool = True):
 		self.pin = Pin(pin, Pin.OUT)
 		self.state = False
