@@ -1,4 +1,4 @@
-from features import FeatureRGBLed, FeatureOnOffPin, FeatureButton
+from features import FeatureRGBLed, FeatureOnOffToggle, FeatureButton
 
 def register_features():
 	FeatureRGBLed(
@@ -9,14 +9,14 @@ def register_features():
 		blue_pin=14
 	)
 
-	FeatureOnOffPin(
+	FeatureOnOffToggle(
 		id="relay1",
 		name="Relay 1",
 		pin=22,
 		flip=True
 	)
 
-	FeatureOnOffPin(
+	FeatureOnOffToggle(
 		id="relay2",
 		name="Relay 2",
 		pin=23,
