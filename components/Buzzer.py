@@ -6,27 +6,35 @@ log = scope("buzzer")
 
 class Buzzer:
 	def __init__(self, pin: int, frequency=1000):
-		self.pin = pin
+		self.pin = machine.Pin(pin, machine.Pin.OUT)
 		self.frequency = frequency
-		self.buzzer = machine.PWM(machine.Pin(pin))
-		self.buzzer.deinit()
+		self.buzzer = machine.PWM(self.pin, freq=frequency, duty=0)
 		self.is_playing = False
 		self.task = None
+		self.duty = 512
 		self.lock = asyncio.Lock()
 
 	def play_tone(self, frequency=None):
 		if frequency:
 			self.frequency = frequency
 
-		if (self.is_playing):
+		if self.frequency == 0:
 			self.stop_tone()
+			return
+			# self.stop_tone()
 
-		self.buzzer.init(freq=self.frequency, duty=512)
+		# self.buzzer.init(freq=self.frequency, duty=self.duty)
+		self.buzzer.freq(self.frequency)
+		self.buzzer.duty(self.duty)
 		self.is_playing = True
 
 	def stop_tone(self, stop_task=False):
 		log("DEBG", "STOP")
-		self.buzzer.deinit()
+
+		if self.is_playing:
+			self.buzzer.duty(0)
+			# self.buzzer.deinit()
+
 		self.is_playing = False
 
 		if (stop_task and self.task):
@@ -54,10 +62,12 @@ class Buzzer:
 			for note in notes:
 				if note > 0:
 					self.play_tone(note)
+					await asyncio.sleep(tempo * 0.9)
+					self.stop_tone()
 				else:
 					self.stop_tone()
 
-				await asyncio.sleep(tempo)
+				await asyncio.sleep(tempo * 0.1)
 
 			if not loop:
 				break

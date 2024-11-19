@@ -5,7 +5,8 @@ from components import Buzzer
 class FeatureAlarm(FeatureBase):
 	def __init__(self, id: str, name: str, pin: int):
 		super(FeatureAlarm, self).__init__(id, name, flags=FeatureBase.FLAG_WRITE)
-		self.component = Buzzer(pin)
+		self.component = Buzzer(pin, frequency=500)
+		self.component.duty = 812
 		self.current_value = "off"
 
 	async def do_update_component(self):
@@ -23,7 +24,11 @@ class FeatureAlarm(FeatureBase):
 			await self.component.beep(duration, freq)
 			self.set_value("off", FeatureUpdateSource.HARDWARE)
 		elif action == "alert":
-			alert_tone = [1500, 1500, 1500, 0]
+			alert_tone = [1500, 0, 1500, 0, 1500, 0]
+			await self.component.play_melody(alert_tone, 0.2)
+			self.set_value("off", FeatureUpdateSource.HARDWARE)
+		elif action == "tune":
+			alert_tone = [262, 262, 392, 392, 440, 440, 392, 0, 349, 349, 330, 330, 294, 294, 262]
 			await self.component.play_melody(alert_tone, 0.2)
 			self.set_value("off", FeatureUpdateSource.HARDWARE)
 		elif action == "alarm":
