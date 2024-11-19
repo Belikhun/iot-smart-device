@@ -2090,12 +2090,323 @@ function sanitizeHTML(html) {
 
 /**
  * @typedef { "text" | "textarea" | "email" | "password"
- * 		| "color" | "number" | "date" | "time" | "select"
- * 		| "file" | "datetime-local" | "month" | "week"
- * 		| "tel" | "url" } CreateInputTypes
- * 
- * @typedef {(value: String | Number) => any} CreateInputHandle
+* 		| "color" | "number" | "date" | "time" | "select"
+* 		| "file" | "datetime-local" | "month" | "week"
+* 		| "tel" | "url" | "float" } CreateInputTypes
+*
+* @typedef {(value: string | number) => any} CreateInputHandle
+*/
+
+/**
+ * Create Input Element, require `input.css`
+ *
+ * @param	{object}							options
+ * @param	{CreateInputTypes}					options.type
+ * @param	{string}							options.id
+ * @param	{string}							options.label
+ * @param	{string}							options.value
+ * @param	{"blue" | "purple" | "red"}			options.color
+ * @param	{boolean}							options.required
+ * @param	{boolean}							options.autofill
+ * @param	{boolean}							options.spellcheck
+ * @param	{{[key: string]: string}}			options.options
+ * @param	{{[unit: string]: string}}			[options.units]
+ * @param	{boolean}							options.animated
+ * @param	{boolean}							options.disabled
  */
+function createInput({
+	type = "text",
+	id = randString(6),
+	label = "Sample Input",
+	value = "",
+	color = "blue",
+	required = false,
+	withEnableSwitch = false,
+	autofill = true,
+	spellcheck = false,
+	options = {},
+	units = null,
+	animated = false,
+	disabled = false
+} = {}) {
+	// Check valid input type can be used in this api. Will throw an error when input type is invalid
+	// Some types are not included because there are api to create that specific input
+	//
+	// See https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#input_types
+	if (!["text", "textarea", "email", "password", "color", "number", "float", "date", "time", "select", "file", "datetime-local", "month", "week", "tel", "url"].includes(type))
+		throw { code: -1, description: `createInput(${type}): Invalid type: ${type}` }
+
+	if (required)
+		label += "*";
+
+	let enableSwitch = null;
+	let unitSelect = null;
+
+	if (["date", "time", "datetime-local", "month", "week"].includes(type) && !required)
+		withEnableSwitch = true;
+
+	if (withEnableSwitch) {
+		enableSwitch = createCheckbox({
+			label: app.string("enable"),
+			color,
+			value: false
+		});
+	}
+
+	if (units) {
+		unitSelect = document.createElement("select");
+		unitSelect.classList.add("units");
+		unitSelect.id = `${id}_units`;
+
+		for (const [unit, display] of Object.entries(units)) {
+			const option = document.createElement("option");
+			option.value = unit;
+			option.innerHTML = display;
+
+			unitSelect.appendChild(option);
+		}
+	}
+
+	const container = makeTree("span", "sq-input", {
+		enable: enableSwitch,
+
+		input: {
+			tag: ["textarea", "select"].includes(type) ? type : "input",
+			class: "input",
+			type,
+			id,
+			placeholder: label,
+			autocomplete: autofill ? "on" : "off",
+			autofill: autofill ? "on" : "off",
+			spellcheck: !!spellcheck,
+			required
+		},
+
+		outline: { tag: "div", class: "outline", child: {
+			leading: { tag: "span", class: ["notch", "leading"] },
+
+			label: { tag: "span", class: ["notch", "label"], child: {
+				label: { tag: "label", htmlFor: id, text: label }
+			}},
+
+			trailing: { tag: "span", class: ["notch", "trailing"] }
+		}},
+
+		units: unitSelect,
+
+		message: { tag: "div", class: "message" }
+	});
+
+	container.dataset.color = color;
+	container.dataset.soundhoversoft = "";
+	container.dataset.soundselectsoft = "";
+
+	if (type === "float")
+		container.input.step = "any";
+
+	if (animated)
+		container.setAttribute("animated", true);
+
+	if (withEnableSwitch) {
+		container.classList.add("with-enable-switch");
+
+		(new MutationObserver(() => {
+			enableSwitch.input.checked = !container.input.disabled;
+
+			if (unitSelect)
+				unitSelect.disabled = container.input.disabled;
+		})).observe(container.input, {
+			subtree: false,
+			childList: false,
+			attributes: true,
+			attributeFilter: ["disabled"]
+		});
+	}
+
+	if (unitSelect)
+		container.classList.add("has-unit-select");
+
+	if (typeof sounds === "object")
+		sounds.applySound(container, ["soundhoversoft", "soundselectsoft"]);
+
+	switch(type) {
+		case "textarea":
+			container.input.style.fontFamily = "Consolas";
+			container.input.style.fontWeight = "bold";
+			container.input.style.fontSize = "15px";
+			break;
+
+		case "select": {
+			for (const key of Object.keys(options)) {
+				const option = document.createElement("option");
+				option.value = key;
+				option.innerHTML = options[key];
+
+				container.input.appendChild(option);
+			}
+
+			break;
+		}
+	}
+
+	// Events
+	let currentColor = color;
+	const onInputHandlers = [];
+	const onChangeHandlers = [];
+	const validateHandlers = [];
+	const disabledHandlers = [];
+
+	container.input.disabled = disabled;
+	container.input.addEventListener("input", (e) => onInputHandlers.forEach(f => f(container.input.value, e)));
+	container.input.addEventListener("change", (e) => onChangeHandlers.forEach(f => f(container.input.value, e)));
+	container.input.value = value;
+
+	// Event for validating input.
+	container.input.addEventListener("input", () => {
+		for (const handler of validateHandlers) {
+			if (!handler()) {
+				container.dataset.color = "red";
+				break;
+			}
+		}
+
+		container.classList.remove("message");
+		container.dataset.color = currentColor;
+	});
+
+	if (enableSwitch) {
+		container.input.disabled = !enableSwitch.input.checked;
+
+		enableSwitch.input.addEventListener("change", () => {
+			container.input.disabled = !enableSwitch.input.checked;
+
+			for (const handler of disabledHandlers)
+				handler(container.input.disabled);
+		});
+	}
+
+	return {
+		group: container,
+
+		/** @type {HTMLInputElement} */
+		input: container.input,
+
+		enableSwitch,
+		unitSelect,
+
+		set({
+			value,
+			label,
+			options,
+			color,
+			message
+		}) {
+			if (typeof options === "object" && container.input.tagName.toLowerCase() === "select") {
+				emptyNode(container.input);
+
+				for (const key of Object.keys(options)) {
+					const option = document.createElement("option");
+					option.value = key;
+					option.innerHTML = options[key];
+
+					container.input.appendChild(option);
+				}
+			}
+
+			if (typeof value !== "undefined") {
+				container.input.value = value;
+				container.input.dispatchEvent(new Event("input"));
+				container.input.dispatchEvent(new Event("change"));
+			}
+
+			if (label) {
+				container.input.placeholder = label;
+				container.outline.label.label.innerText = label;
+			}
+
+			if (typeof color === "string") {
+				container.dataset.color = color;
+				currentColor = color;
+			}
+
+			if (typeof message === "string") {
+				container.classList.add("message");
+				container.dataset.color = "red";
+				container.message.innerText = message;
+			} else if (message === false) {
+				container.classList.remove("message");
+			}
+		},
+
+		/** @return	{String} */
+		get value() {
+			return container.input.value;
+		},
+
+		set value(value) {
+			this.set({ value });
+		},
+
+		/** @return	{Boolean} */
+		get disabled() {
+			return container.input.disabled;
+		},
+
+		set disabled(disabled) {
+			container.input.disabled = disabled;
+
+			if (enableSwitch)
+				enableSwitch.input.checked = !disabled;
+
+			for (const handler of disabledHandlers)
+				handler(container.input.disabled);
+		},
+
+		get unit() {
+			if (!unitSelect)
+				return null;
+
+			return unitSelect.value;
+		},
+
+		set unit(unit) {
+			if (!unitSelect)
+				return;
+
+			unitSelect.value = unit;
+		},
+
+		validate(f) {
+			if (typeof f !== "function")
+				throw { code: -1, description: `createInput(${type}).onInput(): Not a valid function` }
+
+			validateHandlers.push(f);
+		},
+
+		onInput(handler) {
+			if (typeof handler !== "function")
+				throw { code: -1, description: `createInput(${type}).onInput(): Not a valid function` }
+
+			onInputHandlers.push(handler);
+			handler(container.input.value, null);
+		},
+
+		onChange(handler) {
+			if (typeof handler !== "function")
+				throw { code: -1, description: `createInput(${type}).onChange(): Not a valid function` }
+
+			onChangeHandlers.push(handler);
+			handler(container.input.value, null);
+		},
+
+		onDisabled(handler) {
+			if (typeof handler !== "function")
+				throw { code: -1, description: `createInput(${type}).onDisabled(): Not a valid function` }
+
+			disabledHandlers.push(handler);
+		}
+	}
+}
 
 /**
  * Create standard OSC input.
