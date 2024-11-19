@@ -64,10 +64,10 @@ class Buzzer:
 					self.play_tone(note)
 					await asyncio.sleep(tempo * 0.9)
 					self.stop_tone()
+					await asyncio.sleep(tempo * 0.1)
 				else:
 					self.stop_tone()
-
-				await asyncio.sleep(tempo * 0.1)
+					await asyncio.sleep(tempo)
 
 			if not loop:
 				break
