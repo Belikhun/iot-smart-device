@@ -37,7 +37,6 @@ class Buzzer:
 		await self.lock.acquire()
 		self.play_tone(frequency)
 		await asyncio.sleep(duration)
-		self.buzzer.freq(1)
 		self.stop_tone()
 		self.lock.release()
 
@@ -48,22 +47,26 @@ class Buzzer:
 
 		self.task = asyncio.create_task(self.beep(duration, frequency))
 
-	async def play_melody(self, notes, tempo=0.5):
-		log("DEBG", f"PLAY tempo={tempo}")
+	async def play_melody(self, notes, tempo=0.5, loop=False):
+		log("DEBG", f"PLAY tempo={tempo} loop={loop}")
 
-		for note in notes:
-			if note > 0:
-				self.play_tone(note)
-			else:
-				self.stop_tone()
+		while True:
+			for note in notes:
+				if note > 0:
+					self.play_tone(note)
+				else:
+					self.stop_tone()
 
-			await asyncio.sleep(tempo)
+				await asyncio.sleep(tempo)
+
+			if not loop:
+				break
 
 		self.stop_tone()
 
-	def do_play_melody(self, notes, tempo=0.5):
+	def do_play_melody(self, notes, tempo=0.5, loop=False):
 		if self.task:
 			self.task.cancel()
 			self.task = None
 
-		self.task = asyncio.create_task(self.play_melody(notes, tempo))
+		self.task = asyncio.create_task(self.play_melody(notes, tempo, loop))

@@ -2,6 +2,7 @@ from utils import hw_id
 from logger import scope
 from features.utils import FeatureUpdateSource, register_feature, push_feature_value
 from micropython import const
+import uasyncio as asyncio
 
 class FeatureBase:
 	FLAG_READ = const(1)
@@ -39,7 +40,10 @@ class FeatureBase:
 
 		if (update_source != FeatureUpdateSource.HARDWARE):
 			self.log("DEBG", "Will perform component update")
-			self.do_update_component()
+			result = self.do_update_component()
+
+			if hasattr(result, "__next__"):
+				asyncio.create_task(result)
 
 		if (update_source != FeatureUpdateSource.SERVER):
 			self.log("DEBG", "Will push value to server")

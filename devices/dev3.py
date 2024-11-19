@@ -1,10 +1,8 @@
-from features import FeatureButton, FeatureKnob, FeatureTemperature, FeatureHumidity, FeatureSensorValue
-from features.utils import FeatureUpdateSource
-import uasyncio as asyncio
-import machine
-import dht
-from mq import MQ2
-from logger import log, scope
+from features import FeatureAlarm
 
 def register_features():
-	pass
+	FeatureAlarm(
+		id="alarm",
+		name="Alarm Buzzer",
+		pin=27
+	)
