@@ -9,4 +9,5 @@ from .FeatureTemperature import FeatureTemperature
 from .FeatureHumidity import FeatureHumidity
 from .FeatureSensorValue import FeatureSensorValue
 from .FeatureAlarm import FeatureAlarm
+from .FeatureFanMotor import FeatureFanMotor
 from .utils import get_features_data, get_feature
