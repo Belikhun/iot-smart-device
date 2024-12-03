@@ -1,3 +1,9 @@
+from utils import status_buzz
+status_buzz().stop_tone()
+status_buzz().stop_tone()
+status_buzz().stop_tone()
+status_buzz().stop_tone()
+
 from wifi import start_access_point, stop_access_point, connect_wifi, start_wifi, stop_wifi, on_wifi_connected
 from server import start_server, stop_server, is_portal_opened
 from dns import do_start_dns_server
@@ -7,7 +13,7 @@ from config import config, set_config
 from client import ws_connect, ws_start_loop, ws_stop_loop, get_ws, ws_on_connected, ws_do_send, ws_on_data
 from watchdog import start_watchdog
 from device import init_features
-from utils import hw_id, status_led, status_buzz, uuidv4
+from utils import hw_id, status_led, uuidv4
 import machine
 
 log = scope("main")
