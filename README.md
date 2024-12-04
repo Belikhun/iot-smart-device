@@ -19,5 +19,5 @@ Smart device template to easily register components and features from ESP32's GP
 
 ## 🍊 Related projects
 
-* [Smart Server `iot-smart-server`](https://github.com/Belikhun/iot-smart-server)
-* [Smart App `iot-smart-app`](https://github.com/Belikhun/iot-smart-app)
+* [Smart Server `Belikhun/iot-smart-server`](https://github.com/Belikhun/iot-smart-server)
+* [Smart App `Belikhun/iot-smart-app`](https://github.com/Belikhun/iot-smart-app)
