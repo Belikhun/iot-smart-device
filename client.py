@@ -10,6 +10,8 @@ log = scope("ws")
 WS_CLIENT = WebsocketClient()
 WS_TASK = None
 WS_URL = None
+WS_SHOULD_DO_RECONNECT = True
+WS_RECONNECT_TASK = None
 WS_CONNECTED_HANDLER = None
 WS_DATA_HANDLERS = []
 
@@ -21,7 +23,7 @@ def ws_is_connected():
 	global WS_CLIENT
 	return WS_CLIENT.is_open()
 
-async def ws_connect(url, reconnect=False):
+async def ws_connect(url, reconnect=False, reconnect_delay=2):
 	global WS_CLIENT, WS_URL, WS_TASK
 
 	WS_URL = url
@@ -48,7 +50,7 @@ async def ws_connect(url, reconnect=False):
 			status_buzz().do_beep(duration=0.2, frequency=820)
 
 			if reconnect:
-				ws_do_reconnect()
+				ws_do_reconnect(reconnect_delay)
 
 			return False
 
@@ -63,7 +65,7 @@ async def ws_connect(url, reconnect=False):
 				status_buzz().do_beep(duration=0.2, frequency=820)
 
 				if reconnect:
-					ws_do_reconnect()
+					ws_do_reconnect(reconnect_delay)
 
 				return False
 
@@ -80,7 +82,7 @@ async def ws_connect(url, reconnect=False):
 		status_buzz().do_beep(duration=0.2, frequency=820)
 
 		if reconnect:
-			ws_do_reconnect()
+			ws_do_reconnect(reconnect_delay)
 
 		return False
 
@@ -137,16 +139,31 @@ async def ws_stop_loop():
 		watchdog.stop_monitor_ws()
 
 async def ws_reconnect(delay=2):
-	global WS_URL
+	global WS_URL, WS_SHOULD_DO_RECONNECT
+
+	if not WS_SHOULD_DO_RECONNECT:
+		return
 
 	log("INFO", f"Auto re-connect to {WS_URL} in {delay} seconds")
 	await asyncio.sleep(delay)
 
-	if await ws_connect(WS_URL, reconnect=True):
+	if await ws_connect(WS_URL, reconnect=True, reconnect_delay=delay):
 		await ws_start_loop()
 
 def ws_do_reconnect(delay=2):
-	asyncio.create_task(ws_reconnect(delay))
+	global WS_SHOULD_DO_RECONNECT, WS_RECONNECT_TASK
+	WS_SHOULD_DO_RECONNECT = True
+	WS_RECONNECT_TASK = asyncio.create_task(ws_reconnect(delay))
+
+def ws_stop_reconnect_retry():
+	global WS_SHOULD_DO_RECONNECT, WS_RECONNECT_TASK
+	WS_SHOULD_DO_RECONNECT = False
+
+	if WS_RECONNECT_TASK:
+		WS_RECONNECT_TASK.cancel()
+		WS_RECONNECT_TASK = None
+
+	log("INFO", f"Auto re-connect stopped")
 
 async def ws_send(command, data=None, source="system"):
 	global WS_CLIENT

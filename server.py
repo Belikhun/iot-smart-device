@@ -7,7 +7,7 @@ from config import config, set_config
 from utils import send_response_in_chunks
 from wifi import get_wifi_status, get_wifi_if, connect_wifi
 from utils import hw_id
-from client import ws_is_connected, ws_connect, ws_start_loop
+from client import ws_is_connected, ws_connect, ws_start_loop, ws_stop_reconnect_retry
 
 log = scope("http:server")
 server = HTTPServer()
@@ -22,6 +22,7 @@ def is_portal_opened():
 async def index(reader, writer, request: HTTPRequest):
 	global portal_opened
 	portal_opened = True
+	ws_stop_reconnect_retry()
 
 	response = HTTPResponse(200, "text/html", close=True)
 	await response.send(writer)

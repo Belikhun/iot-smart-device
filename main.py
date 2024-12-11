@@ -10,7 +10,7 @@ from dns import do_start_dns_server
 import uasyncio as asyncio
 from logger import scope
 from config import config, set_config
-from client import ws_connect, ws_start_loop, ws_stop_loop, get_ws, ws_on_connected, ws_do_send, ws_on_data
+from client import ws_connect, ws_start_loop, ws_stop_loop, get_ws, ws_on_connected, ws_do_send, ws_on_data, ws_do_reconnect
 from watchdog import start_watchdog
 from device import init_features
 from utils import hw_id, status_led, uuidv4
@@ -136,6 +136,7 @@ async def init_ws_server():
 		log("INFO", "Websocket server is not reachable. Re-configuration is required in portal.")
 		status_led().start_animation("breathe", color=(0, 255, 0))
 		configure()
+		ws_do_reconnect(10)
 		return
 
 	stop_access_point()
@@ -144,8 +145,6 @@ async def init_ws_server():
 	log("OKAY", "Device initialized")
 
 def handle_ws_connected():
-	init_features()
-
 	token = config("token")
 
 	if not token:
@@ -159,6 +158,7 @@ def handle_ws_connected():
 	}
 
 	ws_do_send("auth", data)
+	init_features()
 
 ws_on_connected(handle_ws_connected)
 
