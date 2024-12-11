@@ -22,9 +22,10 @@ async def watchdog_loop():
 				log("INFO", f"Collected and cleaned {cleaned} dangling objects")
 
 			timestamp = int(time.time_ns() / 1000000)
-			temp = (esp32.raw_temperature() - 32.0) / 1.8
 			log("DEBG", "TIME: {}".format(timestamp))
-			log("DEBG", " CPU: temp {:5.1f}C".format(temp))
+
+			# temp = (esp32.raw_temperature() - 32.0) / 1.8
+			# log("DEBG", " CPU: temp {:5.1f}C".format(temp))
 
 			if (MONITOR_WS):
 				heartbeat = timestamp - LAST_WS_HEARTBEAT

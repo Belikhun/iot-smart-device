@@ -7,6 +7,7 @@ class FeatureFanMotor(FeatureBase):
 
 		self.component = FanMotor(pin_a, pin_b)
 		self.current_value = 0
+		self.component.stop()
 
 	def do_update_component(self):
 		value = self.get_value()

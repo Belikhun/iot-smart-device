@@ -7,7 +7,7 @@ class FanMotor:
 		
 		self.ina.freq(pwm_frequency)
 		self.inb.freq(pwm_frequency)
-		
+
 		self.stop()
 
 	def set_speed(self, speed):

@@ -16,6 +16,8 @@ from device import init_features
 from utils import hw_id, status_led, uuidv4
 import machine
 
+status_buzz().stop_tone()
+
 log = scope("main")
 MAIN_INITIALIZED = False
 CONFIGURE_STARTED = False
